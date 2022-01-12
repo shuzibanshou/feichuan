@@ -5,12 +5,13 @@
 UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
 {
     ui->setupUi(this);
-    qsrand(QTime::currentTime().msec());
+    //qsrand(QTime::currentTime().msec());
     localIPv4 = getHostIP();
     checkEnv();
     //启动UDP协议
     udpSocket = new QUdpSocket(this);
     broadcastTimer = new QTimer(this);
+    scanDevicesTimer = new QTimer(this);
 //    for(quint16 port = initPort;; port++){
 //        if(udpSocket->bind(port)){
 //            actualPort = port;
@@ -26,9 +27,11 @@ UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
     connect(udpSocket,SIGNAL(stateChanged(QAbstractSocket::SocketState)),this,SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
     connect(udpSocket,SIGNAL(readyRead()),this,SLOT(onSocketReadyRead()));
     connect(broadcastTimer,SIGNAL(timeout()),this,SLOT(lanBroadcast()));
+    connect(scanDevicesTimer,SIGNAL(timeout()),this,SLOT(scanDevices()));
 
     lanBroadcast();
     broadcastTimer->start(broadcastInterval);
+    scanDevicesTimer->start(scanDevicesInterval);
 }
 
 UDPTrans::~UDPTrans()
@@ -136,7 +139,6 @@ void UDPTrans::checkEnv()
         }
         iter++;
     }
-
 }
 
 /**
@@ -146,41 +148,54 @@ void UDPTrans::checkEnv()
  * @brief UDPTrans::checkBroadcast
  * @param remoteIPv4Addr
  */
-void UDPTrans::checkBroadcast(QString data,QString remoteIPv4Addr)
+void UDPTrans::checkBroadcast(QString remoteIPv4Addr)
 {
-    qDebug() << remoteIPv4Addr;
-    qDebug() << data;
-    qDebug() << QString::number(oldBroadcastIndex).toUtf8();
-    if(oldBroadcastIndex == data.toUInt()){
-        if(localIPv4.contains(remoteIPv4Addr)){
-            if(localIPv4.find(remoteIPv4Addr).value() == "00:50:56:C0:00:01" || localIPv4.find(remoteIPv4Addr).value() == "00:50:56:C0:00:08"){
-                QMessageBox::critical(this, tr("错误"),tr("广播迂回地址为虚拟网卡地址,初始化失败,请重启虚拟网卡尝试解决,详情请见教程"),QMessageBox::Ok,QMessageBox::Ok);
-                return;
-            }
-        } else {
-            //将局域网其他主机写入列表
-            ui->textEdit->append("远程主机IP地址"+remoteIPv4Addr);
-            newLanDevices.append("远程主机IP地址"+remoteIPv4Addr);
-        }
-    }
+//    qDebug() << remoteIPv4Addr;
+//    qDebug() << data;
+//    qDebug() << QString::number(oldBroadcastIndex).toUtf8();
 
+    quint32 timestamp = QDateTime::currentDateTime().toTime_t();   //获取当前时间
+    if(localIPv4.contains(remoteIPv4Addr)){
+        if(localIPv4.find(remoteIPv4Addr).value() == "00:50:56:C0:00:01" || localIPv4.find(remoteIPv4Addr).value() == "00:50:56:C0:00:08"){
+            QMessageBox::critical(this, tr("错误"),tr("广播迂回地址为虚拟网卡地址,初始化失败,请重启虚拟网卡尝试解决,详情请见教程"),QMessageBox::Ok,QMessageBox::Ok);
+            return;
+        }
+    } else {
+        //将局域网其他主机写入列表 存在则更新 不存在则添加
+        lanDevices.insert(remoteIPv4Addr,timestamp);
+    }
 }
 
 /**
+ * TODO 广播携带主机名和设备信息
  * 程序初始化后进行局域网UDP广播
  * @brief UDPTrans::lanBroadcast
  */
 void UDPTrans::lanBroadcast()
 {
-    oldBroadcastIndex = newBroadcastIndex;
-    newBroadcastIndex = qrand();
-    oldLanDevices = QStringList(newLanDevices);
-    for(int i = 0; i < oldLanDevices.size(); i++){
-        ui->textEdit->append("远程主机IP地址"+oldLanDevices[i]);
+    udpSocket->writeDatagram("",QHostAddress::Broadcast,initPort);
+}
+
+/**
+ * 遍历局域网活跃设备列表 比对时间戳
+ * 将超时设备踢出设备列表
+ * @brief UDPTrans::scanDevices
+ */
+void UDPTrans::scanDevices()
+{
+    ui->textEdit->clear();
+    quint32 now = QDateTime::currentDateTime().toTime_t();
+    QMap<QString, quint64>::iterator iter = lanDevices.begin();
+    while (iter != lanDevices.end())
+    {
+        //qDebug() << now << "+" << iter.value();
+        if(now - iter.value() >= unactiveTimeout){
+            lanDevices.remove(iter.key());
+        } else {
+            ui->textEdit->append("远程主机IPv4:"+iter.key());
+        }
+        iter++;
     }
-    //newLanDevices.clear();
-    //qDebug() << newBroadcastIndex;
-    udpSocket->writeDatagram(QString::number(oldBroadcastIndex).toUtf8(),QHostAddress::Broadcast,initPort);
 }
 
 /**
@@ -191,25 +206,25 @@ void UDPTrans::onSocketStateChanged(QAbstractSocket::SocketState socketState)
 {
     switch (socketState) {
         case QAbstractSocket::UnconnectedState:
-            //
+            qDebug() << "UnconnectedState";
             break;
         case QAbstractSocket::HostLookupState:
-            //
+            qDebug() << "HostLookupState";
             break;
         case QAbstractSocket::ConnectingState:
-            //
+            qDebug() << "ConnectingState";
             break;
         case QAbstractSocket::ConnectedState:
-            //
+            qDebug() << "ConnectedState";
             break;
         case QAbstractSocket::BoundState:
-            //
+            qDebug() << "BoundState";
             break;
         case QAbstractSocket::ListeningState:
-            //
+            qDebug() << "ListeningState";
             break;
         case QAbstractSocket::ClosingState:
-            //
+            qDebug() << "ClosingState";
             break;
     }
 }
@@ -227,7 +242,7 @@ void UDPTrans::onSocketReadyRead()
         quint16 remotePort;             //远程主机UDP端口
         udpSocket->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
         QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
-        checkBroadcast(QString::fromUtf8(datagram.data()),remoteIPv4Addr);
+        checkBroadcast(remoteIPv4Addr);
         /*if(remoteIPv6Addr.isEqual(localIPv4,QHostAddress::ConversionModeFlag::ConvertV4MappedToIPv4)){
             ui->textEdit->append("忽略本机广播");
         }*/

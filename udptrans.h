@@ -38,18 +38,20 @@ private:
     QMap<QString,QString> getHostIP();
 
     void checkEnv();  //检查环境
-    void checkBroadcast(QString,QString);                                   //检查广播迂回地址
-    QStringList oldLanDevices;                                      //局域网内设备IPv4地址集合-上次在线检查
-    QStringList newLanDevices;                                      //局域网内设备IPv4地址集合-最新在线检查
-    quint16 broadcastInterval = 2000;                               //局域网UDP循环广播时间间隔 默认2000毫秒
+    void checkBroadcast(QString);                                   //检查广播迂回地址
+
+    quint16 broadcastInterval = 5000;                               //局域网UDP循环广播时间间隔 默认5000毫秒
+    quint16 scanDevicesInterval = 5000;                             //扫描活跃设备的时间间隔
+    quint16 unactiveTimeout = 8;                                    //非活跃设备超时时间 默认 8秒
     QTimer*  broadcastTimer;                                        //局域网UDP循环广播定时器
-    quint32 oldBroadcastIndex = 0;                                      //上次广播索引，在广播的时候作为数据发送出去，响应的时候再带回来
-    quint32 newBroadcastIndex = 0;                                      //最新广播索引，在广播的时候作为数据发送出去，响应的时候再带回来
+    QTimer*  scanDevicesTimer;                                      //扫描活跃设备定时器
+    QMap<QString,quint64> lanDevices;                               //局域网内设备IPv4地址合集-定时扫描踢出下线设备
 
 private slots:
     void onSocketStateChanged(QAbstractSocket::SocketState);
     void onSocketReadyRead();
     void lanBroadcast();                                            //程序启动时进行局域网广播
+    void scanDevices();                                             //扫描活跃设备
 };
 
 #endif // UDPTRANS_H
