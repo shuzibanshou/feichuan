@@ -189,7 +189,7 @@ void UDPTrans::scanDevices()
     QMap<QString, quint64>::iterator iter = lanDevices.begin();
     while (iter != lanDevices.end())
     {
-        //qDebug() << now << "+" << iter.value();
+//        qDebug() << now << "+" << iter.key() << "+" << iter.value();
 //        if(now - iter.value() >= unactiveTimeout){
 //            lanDevices.remove(iter.key());        //这种写法Linux下删除节点会有问题
 //        } else {
