@@ -13,7 +13,8 @@
 #include <QTimer>
 #include <QTime>
 #include <QPushButton>
-
+#include <QFileDialog>
+#include <QFile>
 
 namespace Ui {
 class UDPTrans;
@@ -43,7 +44,10 @@ private:
     quint16 initPort = 10000;   //初始化UDP绑定端口 若端口占用绑定失败则在此基础上+1再次进行绑定直到绑定成功为止
     quint16 actualPort = 10000; //最后实际上绑定的UDP端口
 
-    QUdpSocket* udpSocket;
+    QUdpSocket* udpSocket;                                          //UDP广播的socket
+    QUdpSocket* udpSocketFile;                                     //UDP收发文件的socket
+    quint16 filePort = 20001;
+
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
     QMap<QString,QString> localIPv4;                                //保存本地所有IPv4地址的变量
     QString localDevice;                                            //保存拼接的设备信息
@@ -61,13 +65,17 @@ private:
     QTimer*  scanDevicesTimer;                                      //扫描活跃设备定时器
     QMap<QString,deviceItem> lanDevices;                            //局域网内设备IPv4地址合集-定时扫描踢出下线设备
 
-    void addWidgetItem(deviceItem);
+    void addWidgetItem(deviceItem);                                 //动态添加item
+    //QList<QPushButton*> sendMsgBtnList;
 
 private slots:
     void onSocketStateChanged(QAbstractSocket::SocketState);
     void onSocketReadyRead();
     void lanBroadcast();                                            //程序启动时进行局域网广播
     void scanDevices();                                             //扫描活跃设备
+    void openFile();                                                //打开文件管理器
+    void openMsgDialog();                                           //打开发送消息框
+    void onSocketFileReadyRead();
 };
 
 

@@ -11,6 +11,7 @@ UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
     checkEnv();
     //启动UDP协议
     udpSocket = new QUdpSocket(this);
+    udpSocketFile = new QUdpSocket(this);
     broadcastTimer = new QTimer(this);
     scanDevicesTimer = new QTimer(this);
 //    for(quint16 port = initPort;; port++){
@@ -20,15 +21,24 @@ UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
 //        }
 //    }
     if(!udpSocket->bind(initPort)){
-       qDebug("绑定失败,%s",qPrintable(udpSocket->errorString()));
+       qDebug("绑定UDP广播端口失败,%s",qPrintable(udpSocket->errorString()));
        udpSocket->bind(initPort);
     } else {
-       qDebug("绑定成功");
+       qDebug("绑定UDP广播端口成功");
+    }
+    if(!udpSocketFile->bind(filePort)){
+       qDebug("绑定UDP文件端口失败,%s",qPrintable(udpSocketFile->errorString()));
+       udpSocketFile->bind(filePort);
+    } else {
+       qDebug("绑定UDP文件端口成功");
     }
     connect(udpSocket,SIGNAL(stateChanged(QAbstractSocket::SocketState)),this,SLOT(onSocketStateChanged(QAbstractSocket::SocketState)));
     connect(udpSocket,SIGNAL(readyRead()),this,SLOT(onSocketReadyRead()));
     connect(broadcastTimer,SIGNAL(timeout()),this,SLOT(lanBroadcast()));
     connect(scanDevicesTimer,SIGNAL(timeout()),this,SLOT(scanDevices()));
+
+    //收发文件信号槽
+    connect(udpSocketFile,SIGNAL(readyRead()),this,SLOT(onSocketFileReadyRead()));
 
     lanBroadcast();
     broadcastTimer->start(broadcastInterval);
@@ -311,17 +321,19 @@ void UDPTrans:: addWidgetItem(deviceItem di){
     QLabel *deviceName = new QLabel(itemWidget);
     deviceName->setObjectName(QStringLiteral("deviceName"));
     QFont font1;
-    font1.setFamily(QStringLiteral("Albertus Extra Bold"));
-    font1.setPointSize(10);
+    font1.setFamily(QStringLiteral("Arial"));
+    font1.setPointSize(12);
     deviceName->setFont(font1);
-    deviceName->setAlignment(Qt::AlignCenter);
+    //deviceName->setAlignment(Qt::AlignCenter);
+    deviceName->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
+    //deviceName->setMargin(10);
     deviceName->setText(di.deviceName);
 
     QLabel *deviceIPv4 = new QLabel(itemWidget);
     deviceName->setObjectName(QStringLiteral("deviceIPv4"));
     QFont font2;
     font2.setFamily(QStringLiteral("Arial"));
-    font2.setPointSize(12);
+    font2.setPointSize(10);
     deviceIPv4->setFont(font2);
     deviceName->setAlignment(Qt::AlignCenter);
     deviceIPv4->setText(di.deviceIPv4);
@@ -341,5 +353,82 @@ void UDPTrans:: addWidgetItem(deviceItem di){
     layout->addWidget(sendMsg);
     itemWidget->setLayout(layout);
     ui->remoteDevice->setItemWidget(remoteItem,itemWidget);
-    //ui->remoteDevice->addItem(remoteItem);
+
+    //sendMsgBtnList.append(sendMsg);
+    //是否会内存泄漏
+    connect(sendFile,SIGNAL(clicked()),this,SLOT(openFile()));
+    connect(sendMsg,SIGNAL(clicked()),this,SLOT(openMsgDialog()));
 }
+
+/**
+ * 打开系统文件管理器
+ * @brief UDPTrans::openFile
+ */
+void UDPTrans:: openFile(){
+    //qDebug() << "打开文件管理器";
+    QString filePath = QFileDialog::getOpenFileName(this,"open","../");
+    if(!filePath.isEmpty()){
+        QString fileName = "";
+        quint32 fileSize = 0;
+        QFileInfo info(filePath);
+        fileName = info.fileName();
+        fileSize = info.size();
+
+        //只读方式打开
+        QFile file;
+        file.setFileName(filePath);
+        bool succ = file.open(QIODevice::ReadOnly);
+        if(succ){
+            //file.read();
+            //向文件接收方发送文件信息
+            QString fi = QString("%1##%2").arg(fileName).arg(fileSize);
+            qDebug() << fi;
+            udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress("192.168.3.3"),filePort);
+        } else {
+            qDebug() << "打开文件失败";
+        }
+    } else {
+        qDebug() << "文件路径有误";
+    }
+}
+
+/**
+ * 打开消息发送窗口
+ * @brief UDPTrans::openMsgDialog
+ */
+void UDPTrans:: openMsgDialog(){
+    //qDebug() << "打开文件管理器";
+
+}
+
+/**
+ * 文件消息达到的时候弹出一个模态对话框进行确定
+ * @brief UDPTrans::onSocketFileReadyRead
+ */
+void UDPTrans::onSocketFileReadyRead()
+{
+//    if(udpSocketFile->hasPendingDatagrams()){
+
+//    }
+    bool isFileInfo = true;
+    while(udpSocketFile->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(static_cast<int>(udpSocketFile->pendingDatagramSize()));
+        QHostAddress remoteIPv6Addr;     //远程主机地址ipv6
+        quint16 remotePort;             //远程主机UDP端口
+        udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
+        QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
+        if(!QString::fromUtf8(datagram.data()).isEmpty()){
+            if(isFileInfo){
+
+                qDebug() << "ok,我已收到文件." <<  datagram.data();
+                isFileInfo = false;
+            } else {
+                //读取文件内容
+
+            }
+        }
+    }
+}
+
+

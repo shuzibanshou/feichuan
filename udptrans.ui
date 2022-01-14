@@ -72,12 +72,15 @@
     </layout>
    </widget>
    <widget class="QListWidget" name="remoteDevice">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>180</y>
       <width>331</width>
-      <height>431</height>
+      <height>481</height>
      </rect>
     </property>
    </widget>
@@ -93,6 +96,14 @@
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QLabel" name="localIPv4Label">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+         <stylestrategy>PreferAntialias</stylestrategy>
+         <kerning>true</kerning>
+        </font>
+       </property>
        <property name="midLineWidth">
         <number>200</number>
        </property>
@@ -144,11 +155,20 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QLabel" name="localNameLabel">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="midLineWidth">
         <number>200</number>
        </property>
        <property name="text">
         <string>主机名</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -167,7 +187,7 @@
         <string>AMD</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
