@@ -166,6 +166,7 @@ void UDPTrans::checkBroadcast(QString remoteIPv4Addr)
     }
 }
 
+
 /**
  * TODO 广播携带主机名和设备信息
  * 程序初始化后进行局域网UDP广播
@@ -189,12 +190,19 @@ void UDPTrans::scanDevices()
     while (iter != lanDevices.end())
     {
         //qDebug() << now << "+" << iter.value();
+//        if(now - iter.value() >= unactiveTimeout){
+//            lanDevices.remove(iter.key());        //这种写法Linux下删除节点会有问题
+//        } else {
+//            ui->textEdit->append("远程主机IPv4:"+iter.key());
+//        }
+//        iter++;
+
         if(now - iter.value() >= unactiveTimeout){
-            lanDevices.remove(iter.key());
+            lanDevices.erase(iter++);
         } else {
             ui->textEdit->append("远程主机IPv4:"+iter.key());
+            iter++;
         }
-        iter++;
     }
 }
 
@@ -235,6 +243,7 @@ void UDPTrans::onSocketStateChanged(QAbstractSocket::SocketState socketState)
  */
 void UDPTrans::onSocketReadyRead()
 {
+    //qDebug() << udpSocket->state();
     while(udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(static_cast<int>(udpSocket->pendingDatagramSize()));
