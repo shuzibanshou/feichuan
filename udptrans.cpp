@@ -182,6 +182,8 @@ void UDPTrans::checkBroadcast(QString data,QString remoteIPv4Addr)
                 QMessageBox::critical(this, tr("错误"),tr("广播迂回地址为虚拟网卡地址,初始化失败,请重启虚拟网卡尝试解决,详情请见教程"),QMessageBox::Ok,QMessageBox::Ok);
                 return;
             }
+            ui->localName->setText(deviceName);
+            ui->localIPv4->setText(remoteIPv4Addr);
         } else {
             //将局域网其他主机写入列表 存在则更新 不存在则添加
             lanDevices.insert(remoteIPv4Addr,di);

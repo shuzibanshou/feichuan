@@ -2,6 +2,7 @@
 #define UDPTRANS_H
 
 #include <QMainWindow>
+#include <QPushButton>
 #include <QNetworkInterface>
 #include <QUdpSocket>
 #include <QDebug>
@@ -44,14 +45,14 @@ private:
 
     QUdpSocket* udpSocket;
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
-    QMap<QString,QString> localIPv4;                                //保存本地IPv4地址的变量
+    QMap<QString,QString> localIPv4;                                //保存本地所有IPv4地址的变量
     QString localDevice;                                            //保存拼接的设备信息
     //QString getLocalIPv4();                                       //获取本地IPv4地址
-    QMap<QString,QString> getHostIP();                              //读取本地所有IPv4地址
+    QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
     QString getDeviceInfo();                                        //获取设备信息
 
     void checkEnv();  //检查环境
-    void checkBroadcast(QString,QString);                                   //检查广播迂回地址
+    void checkBroadcast(QString,QString);                           //检查广播迂回地址
 
     quint16 broadcastInterval = 5000;                               //局域网UDP循环广播时间间隔 默认5000毫秒
     quint16 scanDevicesInterval = 5000;                             //扫描活跃设备的时间间隔
