@@ -186,17 +186,18 @@ void UDPTrans::checkBroadcast(QString data,QString remoteIPv4Addr)
         QString deviceName = list[1];
         quint32 timestamp = QDateTime::currentDateTimeUtc().toTime_t();   //获取当前时间
 
-        deviceItem di = {.deviceOS = deviceOS, .deviceName = deviceName, .deviceIPv4 = remoteIPv4Addr, .timestamp = timestamp};
+        deviceItem di = {.deviceOS = deviceOS, .deviceName = deviceName, .deviceIPv4 = remoteIPv4Addr, .item = NULL, .timestamp = timestamp};
         if(localIPv4.contains(remoteIPv4Addr)){
             if(localIPv4.find(remoteIPv4Addr).value() == "00:50:56:C0:00:01" || localIPv4.find(remoteIPv4Addr).value() == "00:50:56:C0:00:08"){
                 QMessageBox::critical(this, tr("错误"),tr("广播迂回地址为虚拟网卡地址,初始化失败,请重启虚拟网卡尝试解决,详情请见教程"),QMessageBox::Ok,QMessageBox::Ok);
                 return;
             }
+            //根据广播迂回数据填充本机信息
             ui->localName->setText(deviceName);
             ui->localIPv4->setText(remoteIPv4Addr);
         } else {
-            //将局域网其他主机写入列表 存在则更新 不存在则添加
-            lanDevices.insert(remoteIPv4Addr,di);
+            //将局域网其他主机写入最新列表 存在则更新 不存在则添加
+            newLanDevices.insert(remoteIPv4Addr,di);
         }
     }
 }
@@ -219,12 +220,12 @@ void UDPTrans::lanBroadcast()
  */
 void UDPTrans::scanDevices()
 {
-    ui->remoteDevice->clear();
+    //ui->remoteDevice->clear();
     quint32 now = QDateTime::currentDateTimeUtc().toTime_t();
-    QMap<QString, deviceItem>::iterator iter = lanDevices.begin();
-    //qDebug() << lanDevices.count();
+    QMap<QString, deviceItem>::iterator iter = newLanDevices.begin();
+    //qDebug() << newLanDevices.count();
 
-    while (iter != lanDevices.end())
+    while (iter != newLanDevices.end())
     {
         //第0种写法  这种写法Linux下删除节点会有问题
 //        if(now - iter.value() >= unactiveTimeout){
@@ -236,12 +237,23 @@ void UDPTrans::scanDevices()
 
         //第一种写法
         if(now - iter.value().timestamp >= unactiveTimeout){
-            lanDevices.erase(iter++);
+            //qDebug() << iter.key() << "+" <<  iter.value().timestamp;
+            newLanDevices.erase(iter++);
+            delWidgetItem(iter.key());
         } else {
-            addWidgetItem(iter.value());
+            if(lanDevices.contains(iter.value().deviceIPv4)){
+                QString ipv4 = iter.value().deviceIPv4;
+                if((iter.value().deviceOS != lanDevices[ipv4].deviceOS) || (iter.value().deviceName != lanDevices[ipv4].deviceName)){
+                    updateWidgetItem(iter.key(),iter.value());
+                }
+            } else {
+                addWidgetItem(iter.key(),iter.value());
+            }
             iter++;
         }
+
     }
+    lanDevices = newLanDevices;
 
     //第二种写法
 //    QMapIterator<QString, deviceItem> iter(lanDevices);
@@ -311,9 +323,11 @@ void UDPTrans::onSocketReadyRead()
  * @brief UDPTrans::addWidgetItem
  * @param dev
  */
-void UDPTrans:: addWidgetItem(deviceItem di){
+void UDPTrans:: addWidgetItem(QString key,deviceItem di){
     QListWidgetItem* remoteItem = new  QListWidgetItem(ui->remoteDevice);
     remoteItem->setSizeHint(QSize(10,100));
+    //保存该item
+    newLanDevices[key].item = remoteItem;
 
     //设置item布局
     QWidget *itemWidget = new QWidget;
@@ -358,6 +372,24 @@ void UDPTrans:: addWidgetItem(deviceItem di){
     //是否会内存泄漏
     connect(sendFile,SIGNAL(clicked()),this,SLOT(openFile()));
     connect(sendMsg,SIGNAL(clicked()),this,SLOT(openMsgDialog()));
+}
+
+/**
+ * 查找widget的控件并更新信息
+ * @brief UDPTrans::updateWidgetItem
+ * @param key 键名 IPv4地址
+ * @param di
+ */
+void UDPTrans:: updateWidgetItem(QString key,deviceItem di){
+    QWidget* widget = ui->remoteDevice->itemWidget(newLanDevices[key].item);
+    QLabel* q = widget->findChild<QLabel*>("deviceName");
+    q->setText(di.deviceName);
+    qDebug() << q->text();
+}
+
+void UDPTrans:: delWidgetItem(QString key){
+    ui->remoteDevice->removeItemWidget(newLanDevices[key].item);
+    newLanDevices[key].item = NULL;
 }
 
 /**
@@ -407,9 +439,6 @@ void UDPTrans:: openMsgDialog(){
  */
 void UDPTrans::onSocketFileReadyRead()
 {
-//    if(udpSocketFile->hasPendingDatagrams()){
-
-//    }
     bool isFileInfo = true;
     while(udpSocketFile->hasPendingDatagrams()) {
         QByteArray datagram;
@@ -417,7 +446,7 @@ void UDPTrans::onSocketFileReadyRead()
         QHostAddress remoteIPv6Addr;     //远程主机地址ipv6
         quint16 remotePort;             //远程主机UDP端口
         udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
-        QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
+        //QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
         if(!QString::fromUtf8(datagram.data()).isEmpty()){
             if(isFileInfo){
 
