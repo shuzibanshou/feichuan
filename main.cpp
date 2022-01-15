@@ -13,14 +13,22 @@ int main(int argc, char *argv[])
     map1.insert("a",1);
     map1.insert("b",2);
     map1.insert("c",3);
-    map2 = map1;
+
     QMap<QString, quint16>::iterator map1_one = map1.begin();
+    QMap<QString, quint16>::iterator iter = map1.begin();
     QMap<QString, quint16>::iterator temp = map1_one;
     QMap<QString, quint16>::iterator map1_two = ++temp;
+    iter++;
+    map2 = map1;
+map2["a"] =10;
+
+
+
     QMap<QString, quint16>::iterator temp2 = map1_two;
     QMap<QString, quint16>::iterator map1_three = ++temp2;
+    iter++;
     QMap<QString, quint16>::iterator map1_end = map1.end();
-    //iter++;
+    iter++;
 
     QMap<QString, quint16>::iterator map2_one = map2.begin();
     QMap<QString, quint16>::iterator temp3 = map2_one;
@@ -30,13 +38,13 @@ int main(int argc, char *argv[])
     QMap<QString, quint16>::iterator map2_end = map2.end();
 
 
-//    if(iter == map.end()){
-//       qDebug() << "end";
-//    } else {
-//        qDebug() << "not end";
-//    }
+    if(iter == map1.end()){
+       qDebug() << "end";
+    } else {
+        qDebug() << "not end";
+    }
 
-
+    qDebug() << map1["a"];
 //    while (iter != map.end())
 //    {
 //        qDebug() << iter.value();
