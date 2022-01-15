@@ -237,7 +237,6 @@ void UDPTrans::scanDevices()
 
         //第一种写法
         if(now - iter.value().timestamp >= unactiveTimeout){
-            //qDebug() << iter.key() << "+" <<  iter.value().timestamp;
             newLanDevices.erase(iter++);
             delWidgetItem(iter.key());
         } else {
@@ -414,7 +413,7 @@ void UDPTrans:: openFile(){
             //file.read();
             //向文件接收方发送文件信息
             QString fi = QString("%1##%2").arg(fileName).arg(fileSize);
-            qDebug() << fi;
+            //qDebug() << fi;
             udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress("192.168.3.237"),filePort);
         } else {
             qDebug() << "打开文件失败";
@@ -452,6 +451,9 @@ void UDPTrans::onSocketFileReadyRead()
                 qDebug() << "ok,我已收到文件." <<  datagram.data();
                 isFileInfo = false;
                 //TODO 弹出模态对话框
+                QDialog receiveFile;
+                receiveFile.exec();
+
             } else {
                 //读取文件内容
                 udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);

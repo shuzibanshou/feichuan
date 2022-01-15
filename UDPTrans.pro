@@ -26,10 +26,12 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        udptrans.cpp
+        udptrans.cpp \
+    receivefile.cpp
 
 HEADERS += \
-        udptrans.h
+        udptrans.h \
+    receivefile.h
 
 FORMS += \
         udptrans.ui
