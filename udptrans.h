@@ -15,6 +15,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QFile>
+#include <QListWidget>
 
 namespace Ui {
 class UDPTrans;
@@ -27,7 +28,8 @@ typedef struct
     QString deviceOS;
     QString deviceName;
     QString deviceIPv4;
-    quint64 timestamp;  //最新广播UDP时间戳
+    QListWidgetItem* item;  //关联的widgetItem指针
+    quint64 timestamp;      //最新广播UDP时间戳
 } deviceItem;
 
 class UDPTrans : public QMainWindow
@@ -49,11 +51,11 @@ private:
     quint16 filePort = 20001;
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
+    QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
     QMap<QString,QString> localIPv4;                                //保存本地所有IPv4地址的变量
+    QString getDeviceInfo();                                        //获取设备信息
     QString localDevice;                                            //保存拼接的设备信息
     //QString getLocalIPv4();                                       //获取本地IPv4地址
-    QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
-    QString getDeviceInfo();                                        //获取设备信息
 
     void checkEnv();  //检查环境
     void checkBroadcast(QString,QString);                           //检查广播迂回地址
@@ -64,8 +66,11 @@ private:
     QTimer*  broadcastTimer;                                        //局域网UDP循环广播定时器
     QTimer*  scanDevicesTimer;                                      //扫描活跃设备定时器
     QMap<QString,deviceItem> lanDevices;                            //局域网内设备IPv4地址合集-定时扫描踢出下线设备
+    QMap<QString,deviceItem> newLanDevices;                         //下一次扫描新的局域网内设备IPv4地址合集 比对旧的数据 分别新增或更新widgetItem
 
-    void addWidgetItem(deviceItem);                                 //动态添加item
+    void addWidgetItem(QString,deviceItem);                                 //动态添加item
+    void updateWidgetItem(QString,deviceItem);                      //动态更新item
+    void delWidgetItem(QString);                                    //动态删除item
     //QList<QPushButton*> sendMsgBtnList;
 
 private slots:
