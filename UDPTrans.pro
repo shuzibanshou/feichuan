@@ -34,6 +34,7 @@ HEADERS += \
     receivefile.h
 
 FORMS += \
+        receivefile.ui \
         udptrans.ui
 
 # Default rules for deployment.

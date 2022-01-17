@@ -71,7 +71,9 @@ private:
     void addWidgetItem(QString,deviceItem);                                 //动态添加item
     void updateWidgetItem(QString,deviceItem);                      //动态更新item
     void delWidgetItem(QString);                                    //动态删除item
-    //QList<QPushButton*> sendMsgBtnList;
+    void itemClicked(QListWidgetItem *);
+    void itemDoubleClicked(QListWidgetItem *);
+    void itemPressed(QListWidgetItem *);
 
 private slots:
     void onSocketStateChanged(QAbstractSocket::SocketState);
@@ -81,6 +83,7 @@ private slots:
     void openFile();                                                //打开文件管理器
     void openMsgDialog();                                           //打开发送消息框
     void onSocketFileReadyRead();
+    void on_remoteDevice_clicked(const QModelIndex &index);
 };
 
 

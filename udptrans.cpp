@@ -1,6 +1,7 @@
 #include "udptrans.h"
 #include "ui_udptrans.h"
 
+#include "receivefile.h"
 
 UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
 {
@@ -353,10 +354,12 @@ void UDPTrans:: addWidgetItem(QString key,deviceItem di){
 
     QPushButton *sendFile = new QPushButton(itemWidget);
     sendFile->setObjectName(QStringLiteral("sendFile"));
+    sendFile->setProperty("ip",di.deviceIPv4);
     sendFile->setText(QApplication::translate("UDPTrans", "\345\217\221\351\200\201\346\226\207\344\273\266", Q_NULLPTR));
 
     QPushButton *sendMsg = new QPushButton(itemWidget);
     sendMsg->setObjectName(QStringLiteral("sendMsg"));
+    sendMsg->setProperty("ip",di.deviceIPv4);
     sendMsg->setText(QApplication::translate("UDPTrans", "\345\217\221\351\200\201\346\266\210\346\201\257", Q_NULLPTR));
 
     QHBoxLayout *layout = new QHBoxLayout(itemWidget);
@@ -371,7 +374,21 @@ void UDPTrans:: addWidgetItem(QString key,deviceItem di){
     //是否会内存泄漏
     connect(sendFile,SIGNAL(clicked()),this,SLOT(openFile()));
     connect(sendMsg,SIGNAL(clicked()),this,SLOT(openMsgDialog()));
+    //itemWidget->installEventFilter(this);
 }
+
+
+//void UDPTrans::itemClicked(QListWidgetItem * item){
+//    qDebug() << item;
+//}
+
+//void UDPTrans::itemDoubleClicked(QListWidgetItem * item){
+//    qDebug() << item;
+//}
+
+//void UDPTrans::itemPressed(QListWidgetItem * item){
+//    qDebug() << item;
+//}
 
 /**
  * 查找widget的控件并更新信息
@@ -396,7 +413,8 @@ void UDPTrans:: delWidgetItem(QString key){
  * @brief UDPTrans::openFile
  */
 void UDPTrans:: openFile(){
-    //qDebug() << "打开文件管理器";
+    QObject* o = sender();
+    QString ip = o->property("ip").toString();
     QString filePath = QFileDialog::getOpenFileName(this,"open","../");
     if(!filePath.isEmpty()){
         QString fileName = "";
@@ -414,7 +432,7 @@ void UDPTrans:: openFile(){
             //向文件接收方发送文件信息
             QString fi = QString("%1##%2").arg(fileName).arg(fileSize);
             //qDebug() << fi;
-            udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress("192.168.3.237"),filePort);
+            udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress(ip),filePort);
         } else {
             qDebug() << "打开文件失败";
         }
@@ -429,7 +447,9 @@ void UDPTrans:: openFile(){
  */
 void UDPTrans:: openMsgDialog(){
     //qDebug() << "打开文件管理器";
-
+    QObject* o = sender();
+    QString ip = o->property("ip").toString();
+    qDebug() << ip;
 }
 
 /**
@@ -451,8 +471,8 @@ void UDPTrans::onSocketFileReadyRead()
                 qDebug() << "ok,我已收到文件." <<  datagram.data();
                 isFileInfo = false;
                 //TODO 弹出模态对话框
-                QDialog receiveFile;
-                receiveFile.exec();
+                receiveFile* rFile = new receiveFile(this);
+                rFile->show();
 
             } else {
                 //读取文件内容
@@ -463,3 +483,9 @@ void UDPTrans::onSocketFileReadyRead()
 }
 
 
+
+void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
+{
+    qDebug() << index;
+
+}

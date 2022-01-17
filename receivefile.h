@@ -3,15 +3,23 @@
 
 #include <QWidget>
 
+namespace Ui {
+class Dialog;
+}
+
 class receiveFile : public QWidget
 {
     Q_OBJECT
-public:
-    explicit receiveFile(QWidget *parent = nullptr);
+    public:
+        explicit receiveFile(QWidget *parent = nullptr);
 
-signals:
+    signals:
 
-public slots:
+    private:
+        Ui::Dialog *ui;
+
+    private slots:
+
 };
 
 #endif // RECEIVEFILE_H
