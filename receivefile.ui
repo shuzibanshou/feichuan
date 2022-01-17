@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>有新文件</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>108</x>
@@ -35,7 +35,7 @@
       <item>
        <widget class="QLabel" name="senderIPv4">
         <property name="text">
-         <string>192.168.3.3</string>
+         <string>0.0.0.0</string>
         </property>
        </widget>
       </item>

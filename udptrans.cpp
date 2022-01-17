@@ -451,7 +451,6 @@ void UDPTrans:: openMsgDialog(){
     QString ip = o->property("ip").toString();
     qDebug() << ip;
 }
-
 /**
  * 文件消息达到的时候弹出一个模态对话框进行确定
  * @brief UDPTrans::onSocketFileReadyRead
@@ -465,15 +464,16 @@ void UDPTrans::onSocketFileReadyRead()
         QHostAddress remoteIPv6Addr;     //远程主机地址ipv6
         quint16 remotePort;             //远程主机UDP端口
         udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
-        //QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
+        QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
         if(!QString::fromUtf8(datagram.data()).isEmpty()){
             if(isFileInfo){
                 qDebug() << "ok,我已收到文件." <<  datagram.data();
                 isFileInfo = false;
-                //TODO 弹出模态对话框
+                //弹出模态对话框
                 receiveFile* rFile = new receiveFile(this);
-                rFile->show();
+                rFile->setIPv4(remoteIPv4Addr);
 
+                rFile->exec();
             } else {
                 //读取文件内容
                 udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);

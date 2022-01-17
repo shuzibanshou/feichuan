@@ -1,4 +1,5 @@
 #include "udptrans.h"
+#include "receivefile.h"
 #include <QApplication>
 
 

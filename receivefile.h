@@ -1,17 +1,20 @@
 #ifndef RECEIVEFILE_H
 #define RECEIVEFILE_H
 
-#include <QWidget>
+#include <QDialog>
 
 namespace Ui {
 class Dialog;
 }
 
-class receiveFile : public QWidget
+class receiveFile : public QDialog
 {
     Q_OBJECT
     public:
         explicit receiveFile(QWidget *parent = nullptr);
+        void setIPv4(QString ipv4);
+        void setFileName(QString fileName);
+        void setFileSize(quint64 fileSize);
 
     signals:
 
