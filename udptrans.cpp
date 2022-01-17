@@ -464,19 +464,28 @@ void UDPTrans::onSocketFileReadyRead()
         QHostAddress remoteIPv6Addr;     //远程主机地址ipv6
         quint16 remotePort;             //远程主机UDP端口
         udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
+        QString receiveData = QString::fromUtf8(datagram.data());
         QString remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
-        if(!QString::fromUtf8(datagram.data()).isEmpty()){
+        if(!receiveData.isEmpty()){
             if(isFileInfo){
-                qDebug() << "ok,我已收到文件." <<  datagram.data();
+                qDebug() << "ok,我已收到文件." <<  receiveData;
                 isFileInfo = false;
                 //弹出模态对话框
+                QString fileName = receiveData.split("##")[0];
+                QString fileSize = receiveData.split("##")[1];
                 receiveFile* rFile = new receiveFile(this);
                 rFile->setIPv4(remoteIPv4Addr);
+                rFile->setFileName(fileName);
+                rFile->setFileSize(fileSize);
+                QString saveFilePath = QCoreApplication::applicationDirPath() + "/receiveFiles";
+                rFile->setSaveFilePath(saveFilePath);
 
                 rFile->exec();
+                //rFile->show();
             } else {
                 //读取文件内容
                 udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
+                qDebug() << "ok,读取文件.";
             }
         }
     }
@@ -487,5 +496,4 @@ void UDPTrans::onSocketFileReadyRead()
 void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
 {
     qDebug() << index;
-
 }
