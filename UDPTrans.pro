@@ -26,14 +26,17 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
+    progress.cpp \
         udptrans.cpp \
     receivefile.cpp
 
 HEADERS += \
+    progress.h \
         udptrans.h \
     receivefile.h
 
 FORMS += \
+        progress.ui \
         receivefile.ui \
         udptrans.ui
 

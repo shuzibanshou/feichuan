@@ -2,6 +2,7 @@
 #include "ui_udptrans.h"
 
 #include "receivefile.h"
+#include "progress.h"
 
 UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
 {
@@ -518,7 +519,8 @@ void UDPTrans::parseFileMessage(QByteArray data)
     } else if(MessageType::acceptFile == first){
         //打开传输进度窗口 读取文件并发送
         qDebug() << "接收方已同意,开始发送文件";
-
+        progress* ps = new progress(this);
+        ps->exec();
     } else if(MessageType::fileContent == first){
 
     } else if(MessageType::rejectFile == first){
