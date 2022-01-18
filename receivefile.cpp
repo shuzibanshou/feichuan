@@ -5,6 +5,8 @@ receiveFile::receiveFile(QWidget *parent) : QDialog(parent),ui(new Ui::Dialog)
 {
     //ui一定要记得初始化
     ui->setupUi(this);
+    connect(this, SIGNAL(acceptFile()), parent, SLOT(acceptFile()));
+    connect(this, SIGNAL(rejectFile()), parent, SLOT(rejectFile()));
 }
 
 void receiveFile::setIPv4(QString ipv4)
@@ -79,7 +81,8 @@ void receiveFile::on_pushButton_2_clicked()
         QMessageBox::warning(this, tr("提示"),tr("该目录不存在,且无法创建\n请检查权限并手动创建"),QMessageBox::Ok,QMessageBox::Ok);
         return;
     }
-
+    //向父窗口发送接收文件消息
+    emit acceptFile();
 }
 
 /**
@@ -88,5 +91,6 @@ void receiveFile::on_pushButton_2_clicked()
  */
 void receiveFile::on_pushButton_3_clicked()
 {
-
+    //向父窗口发送拒收文件消息
+    emit rejectFile();
 }

@@ -21,8 +21,15 @@ namespace Ui {
 class UDPTrans;
 }
 
-//定义设备信息结构体
+//定义消息类型枚举格式
+enum MessageType{
+    fileInfo = 0x1,                 //发送文件信息
+    fileContent = 0x2,              //发送文件内容
+    acceptFile = 0x3,               //同意接收该文件
+    rejectFile = 0x4                //拒绝接收该文件
+};
 
+//定义设备信息结构体
 typedef struct
 {
     QString deviceOS;
@@ -47,8 +54,10 @@ private:
     quint16 actualPort = 10000; //最后实际上绑定的UDP端口
 
     QUdpSocket* udpSocket;                                          //UDP广播的socket
-    QUdpSocket* udpSocketFile;                                     //UDP收发文件的socket
-    quint16 filePort = 20001;
+    QUdpSocket* udpSocketFile;                                      //UDP收发文件的socket
+    quint16 filePort = 20001;                                       //UDP收发文件的UDP端口
+    quint16 remotePort;                                             //当前与其进行通信的远端UDP端口 默认等于filePort
+    QString remoteIPv4Addr;                                         //当前与其进行通信的远端IPv4地址
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
     QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
@@ -68,12 +77,13 @@ private:
     QMap<QString,deviceItem> lanDevices;                            //局域网内设备IPv4地址合集-定时扫描踢出下线设备
     QMap<QString,deviceItem> newLanDevices;                         //下一次扫描新的局域网内设备IPv4地址合集 比对旧的数据 分别新增或更新widgetItem
 
-    void addWidgetItem(QString,deviceItem);                                 //动态添加item
+    void addWidgetItem(QString,deviceItem);                         //动态添加item
     void updateWidgetItem(QString,deviceItem);                      //动态更新item
     void delWidgetItem(QString);                                    //动态删除item
     void itemClicked(QListWidgetItem *);
     void itemDoubleClicked(QListWidgetItem *);
     void itemPressed(QListWidgetItem *);
+    QFile file;                                                     //发送文件对象
 
 private slots:
     void onSocketStateChanged(QAbstractSocket::SocketState);
@@ -84,6 +94,8 @@ private slots:
     void openMsgDialog();                                           //打开发送消息框
     void onSocketFileReadyRead();
     void on_remoteDevice_clicked(const QModelIndex &index);
+    void acceptFile();                                              //确认接收文件
+    void rejectFile();                                              //拒收文件
 };
 
 

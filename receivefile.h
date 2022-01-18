@@ -10,6 +10,8 @@ namespace Ui {
 class Dialog;
 }
 
+
+
 class receiveFile : public QDialog
 {
     Q_OBJECT
@@ -21,7 +23,8 @@ class receiveFile : public QDialog
         QString formateFileSize(QString);
         void setSaveFilePath(QString);
     signals:
-
+        void acceptFile();
+        void rejectFile();
     private:
         Ui::Dialog *ui;
         QString saveFilePath;
