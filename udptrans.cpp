@@ -429,9 +429,9 @@ void UDPTrans:: openFile(){
         if(succ){
             //file.read();
             //向文件接收方发送文件信息
-            QString fi = QString("%1%2##%3").arg(MessageType::fileInfo).arg(fileName).arg(fileSize);
+            QString fi = QString("%1##%2").arg(fileName).arg(fileSize);
             //qDebug() << fi;
-            udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress(ip),filePort);
+            udpSocketFile->writeDatagram(fi.toUtf8().insert(0,MessageType::fileInfo),QHostAddress(ip),filePort);
         } else {
             qDebug() << "打开文件失败";
         }
