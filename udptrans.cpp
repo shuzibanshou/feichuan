@@ -429,7 +429,7 @@ void UDPTrans:: openFile(){
         if(succ){
             //file.read();
             //向文件接收方发送文件信息
-            QString fi = QString("%1##%2").arg(fileName).arg(fileSize);
+            QString fi = QString("%1%2##%3").arg(MessageType::fileInfo).arg(fileName).arg(fileSize);
             //qDebug() << fi;
             udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress(ip),filePort);
         } else {
@@ -466,28 +466,63 @@ void UDPTrans::onSocketFileReadyRead()
         QString receiveData = QString::fromUtf8(datagram.data());
         remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
         if(!receiveData.isEmpty()){
-            qDebug() << "ok,我已收到消息." <<  datagram.data();
-            if(isFileInfo){
-                isFileInfo = false;
-                //弹出模态对话框
-                QString fileName = receiveData.split("##")[0];
-                QString fileSize = receiveData.split("##")[1];
-                receiveFile* rFile = new receiveFile(this);
-                rFile->setIPv4(remoteIPv4Addr);
-                rFile->setFileName(fileName);
-                rFile->setFileSize(fileSize);
-                QString saveFilePath = QCoreApplication::applicationDirPath() + "/receiveFiles";
-                rFile->setSaveFilePath(saveFilePath);
+            parseFileMessage(datagram.data());
+//            qDebug() << "ok,我已收到消息." <<  datagram.data();
+//            if(isFileInfo){
+//                isFileInfo = false;
+//                //弹出模态对话框
+//                QString fileName = receiveData.split("##")[0];
+//                QString fileSize = receiveData.split("##")[1];
+//                receiveFile* rFile = new receiveFile(this);
+//                rFile->setIPv4(remoteIPv4Addr);
+//                rFile->setFileName(fileName);
+//                rFile->setFileSize(fileSize);
+//                QString saveFilePath = QCoreApplication::applicationDirPath() + "/receiveFiles";
+//                rFile->setSaveFilePath(saveFilePath);
 
-                rFile->exec();
-                //rFile->show();
-            } else {
-                //读取文件内容
-                udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
-                qDebug() << "ok,读取文件.";
-            }
+//                rFile->exec();
+//                //rFile->show();
+//            } else {
+//                //读取文件内容
+//                udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
+//                qDebug() << "ok,读取文件.";
+//            }
         }
     }
+}
+
+/**
+ * 接收远程主机发送的文件消息
+ * @brief UDPTrans::parseMessage
+ */
+void UDPTrans::parseFileMessage(QByteArray data)
+{
+    int first = data[0];            //第一个字节
+    QByteArray content;
+    content.append(data.data() + 1, data.size() - 1);   //去掉data字节流的第一个字节
+    if(MessageType::fileInfo == first){
+        QString receiveData = QString::fromUtf8(content);
+        //弹出模态对话框
+        QString fileName = receiveData.split("##")[0];
+        QString fileSize = receiveData.split("##")[1];
+        receiveFile* rFile = new receiveFile(this);
+        rFile->setIPv4(remoteIPv4Addr);
+        rFile->setFileName(fileName);
+        rFile->setFileSize(fileSize);
+        QString saveFilePath = QCoreApplication::applicationDirPath() + "/receiveFiles";
+        rFile->setSaveFilePath(saveFilePath);
+
+        rFile->exec();
+        //rFile->show();
+    } else if(MessageType::acceptFile == first){
+        qDebug() << "接收方已同意,开始发送文件";
+        //读取文件并发送
+    } else if(MessageType::fileContent == first){
+
+    } else if(MessageType::rejectFile == first){
+
+    }
+
 }
 
 

@@ -58,6 +58,7 @@ private:
     quint16 filePort = 20001;                                       //UDP收发文件的UDP端口
     quint16 remotePort;                                             //当前与其进行通信的远端UDP端口 默认等于filePort
     QString remoteIPv4Addr;                                         //当前与其进行通信的远端IPv4地址
+    QFile file;                                                     //发送文件对象
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
     QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
@@ -83,7 +84,7 @@ private:
     void itemClicked(QListWidgetItem *);
     void itemDoubleClicked(QListWidgetItem *);
     void itemPressed(QListWidgetItem *);
-    QFile file;                                                     //发送文件对象
+    void parseFileMessage(QByteArray);
 
 private slots:
     void onSocketStateChanged(QAbstractSocket::SocketState);
