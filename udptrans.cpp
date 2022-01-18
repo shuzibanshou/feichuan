@@ -430,7 +430,7 @@ void UDPTrans:: openFile(){
             //file.read();
             //向文件接收方发送文件信息
             QString fi = QString("%1%2##%3").arg(MessageType::fileInfo).arg(fileName).arg(fileSize);
-            //qDebug() << fi;
+            qDebug() << fi;
             udpSocketFile->writeDatagram(fi.toUtf8(),QHostAddress(ip),filePort);
         } else {
             qDebug() << "打开文件失败";
