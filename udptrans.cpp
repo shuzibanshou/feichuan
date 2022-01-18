@@ -429,7 +429,7 @@ void UDPTrans:: openFile(){
         if(succ){
             //file.read();
             //向文件接收方发送文件信息
-            QString fi = QString("%1##%2").arg(fileName).arg(fileSize);
+            QString fi = QString("%1##%2").arg(fileName).arg(fileSize); //整型消息格式不能以QString格式发送 会被转成对应字符的ASCII码
             //qDebug() << fi;
             udpSocketFile->writeDatagram(fi.toUtf8().insert(0,MessageType::fileInfo),QHostAddress(ip),filePort);
         } else {
@@ -516,8 +516,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
         rFile->exec();
         //rFile->show();
     } else if(MessageType::acceptFile == first){
+        //打开传输进度窗口 读取文件并发送
         qDebug() << "接收方已同意,开始发送文件";
-        //读取文件并发送
+
     } else if(MessageType::fileContent == first){
 
     } else if(MessageType::rejectFile == first){
