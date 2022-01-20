@@ -52,13 +52,17 @@ private:
     Ui::UDPTrans *ui;
     quint16 initPort = 10000;   //初始化UDP绑定端口 若端口占用绑定失败则在此基础上+1再次进行绑定直到绑定成功为止
     quint16 actualPort = 10000; //最后实际上绑定的UDP端口
-
     QUdpSocket* udpSocket;                                          //UDP广播的socket
+
+    //文件相关
     QUdpSocket* udpSocketFile;                                      //UDP收发文件的socket
     quint16 filePort = 20001;                                       //UDP收发文件的UDP端口
-    quint16 remotePort;                                             //当前与其进行通信的远端UDP端口 默认等于filePort
-    QString remoteIPv4Addr;                                         //当前与其进行通信的远端IPv4地址
+    quint16 remotePort;                                             //当前与其进行文件收发通信的远端UDP端口 默认等于filePort
+    QString remoteIPv4Addr;                                         //当前与其进行文件收发通信的远端IPv4地址
     QFile file;                                                     //发送文件对象
+    QString fileName;                                               //当前发送文件名
+    quint64 fileSize;                                               //当前发送文件大小 bytes
+    QString saveFilePath;                                           //当前接收文件存储路径
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
     QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
