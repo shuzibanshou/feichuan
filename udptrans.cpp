@@ -527,11 +527,11 @@ void UDPTrans::parseFileMessage(QByteArray data)
         do {
             char buff[4096] = {0};
             unitBytes = file.read(buff,sizeof(buff));
-//            if(unitBytes > 0){
-//                unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
-//            }
+            if(unitBytes > 0){
+                unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+            }
             totalBytes += unitBytes;
-            udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+            //udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
 
         } while (unitBytes > 0);
             qDebug() << totalBytes;
