@@ -538,40 +538,40 @@ void UDPTrans::parseFileMessage(QByteArray data)
 //        progress* ps = new progress(this);
 //        ps->exec();
     } else if(MessageType::fileContent == first){
-        //打开接收文件句柄
-        receivefile.setFileName(saveFilePath);
-        bool res = receivefile.open(QIODevice::ReadWrite);
-        //qDebug() << res;
-        while(udpSocketFile->hasPendingDatagrams()) {
-            //接收文件内容
-            QByteArray datagram;
-            datagram.resize(udpSocketFile->pendingDatagramSize());
-            udpSocketFile->readDatagram(datagram.data(),datagram.size());
-            qDebug() << datagram.data();
-            receivefile.write(datagram.data());
-        }
+        //接收文件内容
+        qDebug() << content;
+        receivefile.write(content);
     } else if(MessageType::rejectFile == first){
 
     }
 
 }
 
-
-
-void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
-{
-    qDebug() << index;
-}
+//void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
+//{
+//    qDebug() << index;
+//}
 
 /**
- * 同意接收文件 向文件发送方回馈一个通知消息
+ * 同意接收文件并打开文件句柄
+ * 如果打开成功则向文件发送方回馈一个通知消息
+ * 如果打开失败则提示消息
  * @brief UDPTrans::acceptFile
  */
 void UDPTrans::acceptFile()
 {
-    QByteArray msg;
-    msg.append(MessageType::acceptFile);
-    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+    //打开接收文件句柄
+    receivefile.setFileName(saveFilePath);
+    bool succ = receivefile.open(QIODevice::ReadWrite);
+    if(succ){
+        QByteArray msg;
+        msg.append(MessageType::acceptFile);
+        udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+    } else {
+        QMessageBox::warning(this, tr("提示"),tr("打开文件句柄失败,无法保存文件"),QMessageBox::Ok,QMessageBox::Ok);
+        exit(0);
+    }
+
 }
 
 void UDPTrans::rejectFile()
