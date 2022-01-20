@@ -62,7 +62,11 @@ private:
     QFile file;                                                     //发送文件对象
     QString fileName;                                               //当前发送文件名
     quint64 fileSize;                                               //当前发送文件大小 bytes
+
+    QString saveFileName;                                           //当前接收文件名
+    QString saveDirPath;                                            //当前接收文件存储目录
     QString saveFilePath;                                           //当前接收文件存储路径
+
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
     QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址

@@ -511,8 +511,10 @@ void UDPTrans::parseFileMessage(QByteArray data)
         rFile->setIPv4(remoteIPv4Addr);
         rFile->setFileName(fileName);
         rFile->setFileSize(fileSize);
-        saveFilePath = QCoreApplication::applicationDirPath() + "/receiveFiles";
-        rFile->setSaveFilePath(saveFilePath);
+        saveFileName = fileName;
+        saveDirPath = QCoreApplication::applicationDirPath() + "/receiveFiles";
+        rFile->setSaveFilePath(saveDirPath);
+        saveFilePath = saveDirPath + "/" + saveFileName;
 
         rFile->exec();
         //rFile->show();
@@ -520,28 +522,33 @@ void UDPTrans::parseFileMessage(QByteArray data)
         //打开传输进度窗口 读取文件并发送
         qDebug() << "接收方已同意,开始发送文件";
 
-        quint64 unitBytes = 0;
+        quint64 unitBytes = 0;      //每次发送字节数
+        quint64 totalBytes = 0;     //总发送字节数
         do {
             char buff[4096] = {0};
-            //unitBytes = 0;     //每次读取并发送的字节数
             unitBytes = file.read(buff,sizeof(buff));
-            if(unitBytes > 0){
-                unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
-            }
-        } while (unitBytes > 0);
+//            if(unitBytes > 0){
+//                unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+//            }
+            totalBytes += unitBytes;
+            udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
 
-        progress* ps = new progress(this);
-        ps->exec();
+        } while (unitBytes > 0);
+            qDebug() << "已发送文件字节数" + unitBytes;
+//        progress* ps = new progress(this);
+//        ps->exec();
     } else if(MessageType::fileContent == first){
         //打开接收文件句柄
-        QFile file(saveFilePath);
-        file.open(QIODevice::ReadOnly);
+        QFile receivefile(saveFilePath);
+        bool res = receivefile.open(QIODevice::WriteOnly);
+        //qDebug() << res;
         while(udpSocketFile->hasPendingDatagrams()) {
             //接收文件内容
             QByteArray datagram;
             datagram.resize(udpSocketFile->pendingDatagramSize());
             udpSocketFile->readDatagram(datagram.data(),datagram.size());
-            file.write(datagram.data());
+            qDebug() << datagram.data();
+            receivefile.write(datagram.data());
         }
     } else if(MessageType::rejectFile == first){
 
