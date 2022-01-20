@@ -547,10 +547,10 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
 }
 
-//void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
-//{
-//    qDebug() << index;
-//}
+void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
+{
+    qDebug() << index;
+}
 
 /**
  * 同意接收文件并打开文件句柄
