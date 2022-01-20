@@ -527,20 +527,18 @@ void UDPTrans::parseFileMessage(QByteArray data)
         do {
             char buff[4096] = {0};
             unitBytes = file.read(buff,sizeof(buff));
+            totalBytes += unitBytes;
             if(unitBytes > 0){
                 unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
             }
-            totalBytes += unitBytes;
-            //udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
-
+            qDebug() << buff;
         } while (unitBytes > 0);
-            qDebug() << totalBytes;
 //        progress* ps = new progress(this);
 //        ps->exec();
     } else if(MessageType::fileContent == first){
         //打开接收文件句柄
-        QFile receivefile(saveFilePath);
-        bool res = receivefile.open(QIODevice::WriteOnly);
+        receivefile.setFileName(saveFilePath);
+        bool res = receivefile.open(QIODevice::ReadWrite | QIODevice::Append);
         //qDebug() << res;
         while(udpSocketFile->hasPendingDatagrams()) {
             //接收文件内容
