@@ -533,7 +533,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             }
             //qDebug() << buff;
         } while (unitBytes > 0);
-        udpSocketFile->close();
+        //udpSocketFile->close();
         file.close();
 //        progress* ps = new progress(this);
 //        ps->exec();
