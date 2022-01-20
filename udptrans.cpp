@@ -531,14 +531,16 @@ void UDPTrans::parseFileMessage(QByteArray data)
             if(unitBytes > 0){
                 unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
             }
-            qDebug() << buff;
+            //qDebug() << buff;
         } while (unitBytes > 0);
+        udpSocketFile->close();
+        file.close();
 //        progress* ps = new progress(this);
 //        ps->exec();
     } else if(MessageType::fileContent == first){
         //打开接收文件句柄
         receivefile.setFileName(saveFilePath);
-        bool res = receivefile.open(QIODevice::ReadWrite | QIODevice::Append);
+        bool res = receivefile.open(QIODevice::ReadWrite);
         //qDebug() << res;
         while(udpSocketFile->hasPendingDatagrams()) {
             //接收文件内容
