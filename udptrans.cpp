@@ -457,7 +457,6 @@ void UDPTrans:: openMsgDialog(){
  */
 void UDPTrans::onSocketFileReadyRead()
 {
-    bool isFileInfo = true;
     while(udpSocketFile->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(static_cast<int>(udpSocketFile->pendingDatagramSize()));
@@ -468,26 +467,6 @@ void UDPTrans::onSocketFileReadyRead()
         remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
         if(!receiveData.isEmpty()){
             parseFileMessage(datagram.data());
-//            qDebug() << "ok,我已收到消息." <<  datagram.data();
-//            if(isFileInfo){
-//                isFileInfo = false;
-//                //弹出模态对话框
-//                QString fileName = receiveData.split("##")[0];
-//                QString fileSize = receiveData.split("##")[1];
-//                receiveFile* rFile = new receiveFile(this);
-//                rFile->setIPv4(remoteIPv4Addr);
-//                rFile->setFileName(fileName);
-//                rFile->setFileSize(fileSize);
-//                QString saveFilePath = QCoreApplication::applicationDirPath() + "/receiveFiles";
-//                rFile->setSaveFilePath(saveFilePath);
-
-//                rFile->exec();
-//                //rFile->show();
-//            } else {
-//                //读取文件内容
-//                udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
-//                qDebug() << "ok,读取文件.";
-//            }
         }
     }
 }
@@ -516,8 +495,8 @@ void UDPTrans::parseFileMessage(QByteArray data)
         rFile->setSaveFilePath(saveDirPath);
         saveFilePath = saveDirPath + "/" + saveFileName;
 
-        rFile->exec();
-        //rFile->show();
+        //rFile->exec();
+        rFile->show();
     } else if(MessageType::acceptFile == first){
         //打开传输进度窗口 读取文件并发送
         qDebug() << "接收方已同意,开始发送文件";
@@ -539,8 +518,8 @@ void UDPTrans::parseFileMessage(QByteArray data)
 //        ps->exec();
     } else if(MessageType::fileContent == first){
         //接收文件内容
-        qDebug() << content;
-        receivefile.write(content);
+        //qDebug() << content;
+        receiveFileHandle.write(content);
     } else if(MessageType::rejectFile == first){
 
     }
@@ -561,8 +540,8 @@ void UDPTrans::on_remoteDevice_clicked(const QModelIndex &index)
 void UDPTrans::acceptFile()
 {
     //打开接收文件句柄
-    receivefile.setFileName(saveFilePath);
-    bool succ = receivefile.open(QIODevice::ReadWrite);
+    receiveFileHandle.setFileName(saveFilePath);
+    bool succ = receiveFileHandle.open(QIODevice::ReadWrite);
     if(succ){
         QByteArray msg;
         msg.append(MessageType::acceptFile);

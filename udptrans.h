@@ -63,7 +63,7 @@ private:
     QString fileName;                                               //当前发送文件名
     quint64 fileSize;                                               //当前发送文件大小 bytes
 
-    QFile receivefile;                                              //接收文件对象
+    QFile receiveFileHandle;                                        //接收文件对象
     QString saveFileName;                                           //当前接收文件名
     QString saveDirPath;                                            //当前接收文件存储目录
     QString saveFilePath;                                           //当前接收文件存储路径
