@@ -534,7 +534,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
 
         } while (unitBytes > 0);
-            qDebug() << "已发送文件字节数" + unitBytes;
+            qDebug() << totalBytes;
 //        progress* ps = new progress(this);
 //        ps->exec();
     } else if(MessageType::fileContent == first){
