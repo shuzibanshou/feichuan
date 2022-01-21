@@ -500,7 +500,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
     } else if(MessageType::acceptFile == first){
         //打开传输进度窗口 读取文件并发送
         //qDebug() << "接收方已同意,开始发送文件";
-        quint64 sendUnit = 4096;    //每次计划发送字节数
+        quint64 sendUnit = 2048;    //每次计划发送字节数
         quint64 unitBytes = 0;      //每次实际发送字节数
         quint64 totalBytes = 0;     //总发送字节数
         do {
@@ -510,6 +510,10 @@ void UDPTrans::parseFileMessage(QByteArray data)
                 unitBytes = udpSocketFile->writeDatagram(buff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
             }
             totalBytes += unitBytes;
+            //延时处理
+            QElapsedTimer elTimer;
+            elTimer.start();
+            while(elTimer.elapsed()<500);
         } while (unitBytes > 0);
         qDebug() << "文件传输完毕";   //文件发送完毕向接收方发送通知消息
         QByteArray msg;

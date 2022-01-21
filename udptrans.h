@@ -16,6 +16,7 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QListWidget>
+#include <QElapsedTimer>
 
 namespace Ui {
 class UDPTrans;
