@@ -478,7 +478,7 @@ void UDPTrans::onSocketFileReadyRead()
 void UDPTrans::parseFileMessage(QByteArray data)
 {
     int first = data[0];            //第一个字节
-    //qDebug() << first;
+    qDebug() << data;
     QByteArray content;
     content.append(data.data() + 1, data.size() - 1);   //去掉data字节流的第一个字节
     if(MessageType::fileInfo == first){
@@ -500,15 +500,16 @@ void UDPTrans::parseFileMessage(QByteArray data)
     } else if(MessageType::acceptFile == first){
         //打开传输进度窗口 读取文件并发送
         //qDebug() << "接收方已同意,开始发送文件";
-        quint64 unitBytes = 0;      //每次发送字节数
+        quint64 sendUnit = 4096;    //每次计划发送字节数
+        quint64 unitBytes = 0;      //每次实际发送字节数
         quint64 totalBytes = 0;     //总发送字节数
         do {
-            char buff[4096] = {0};
-            unitBytes = file.read(buff,sizeof(buff));
-            totalBytes += unitBytes;
+            QByteArray buff = file.read(sendUnit);
+            unitBytes = buff.length();
             if(unitBytes > 0){
-                unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+                unitBytes = udpSocketFile->writeDatagram(buff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
             }
+            totalBytes += unitBytes;
         } while (unitBytes > 0);
         qDebug() << "文件传输完毕";   //文件发送完毕向接收方发送通知消息
         QByteArray msg;
@@ -520,8 +521,10 @@ void UDPTrans::parseFileMessage(QByteArray data)
 //        ps->exec();
     } else if(MessageType::fileContent == first){
         //接收文件内容 接收完毕必须要关闭文件
-        qDebug() << content;
-        receiveFileHandle.write(content);
+        //qDebug() << content;
+        quint64 len = 0;
+        len = receiveFileHandle.write(content);
+        //qDebug() << len;
     } else if(MessageType::rejectFile == first){
 
     } else if(MessageType::sentFile == first){
@@ -546,7 +549,7 @@ void UDPTrans::acceptFile()
 {
     //打开接收文件句柄
     receiveFileHandle.setFileName(saveFilePath);
-    bool succ = receiveFileHandle.open(QIODevice::ReadWrite);
+    bool succ = receiveFileHandle.open(QIODevice::WriteOnly);
     if(succ){
         QByteArray msg;
         msg.append(MessageType::acceptFile);

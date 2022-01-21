@@ -62,7 +62,7 @@ private:
     QString remoteIPv4Addr;                                         //当前与其进行文件收发通信的远端IPv4地址
     QFile file;                                                     //发送文件对象
     QString fileName;                                               //当前发送文件名
-    quint64 fileSize;                                               //当前发送文件大小 bytes
+    quint64 fileSize;                                               //当前发送文件总大小 bytes
 
     QFile receiveFileHandle;                                        //接收文件对象
     QString saveFileName;                                           //当前接收文件名
