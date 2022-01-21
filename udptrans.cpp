@@ -499,8 +499,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
         rFile->show();
     } else if(MessageType::acceptFile == first){
         //打开传输进度窗口 读取文件并发送
-        qDebug() << "接收方已同意,开始发送文件";
-
+        //qDebug() << "接收方已同意,开始发送文件";
         quint64 unitBytes = 0;      //每次发送字节数
         quint64 totalBytes = 0;     //总发送字节数
         do {
@@ -510,19 +509,24 @@ void UDPTrans::parseFileMessage(QByteArray data)
             if(unitBytes > 0){
                 unitBytes = udpSocketFile->writeDatagram(QByteArray(buff).insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
             }
-            //qDebug() << buff;
         } while (unitBytes > 0);
-        //udpSocketFile->close();
-        qDebug() << "文件传输完毕";
+        qDebug() << "文件传输完毕";   //文件发送完毕向接收方发送通知消息
+        QByteArray msg;
+        msg.append(MessageType::sentFile);
+        udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+
         file.close();
 //        progress* ps = new progress(this);
 //        ps->exec();
     } else if(MessageType::fileContent == first){
-        //接收文件内容
-        //qDebug() << content;
+        //接收文件内容 接收完毕必须要关闭文件
+        qDebug() << content;
         receiveFileHandle.write(content);
     } else if(MessageType::rejectFile == first){
 
+    } else if(MessageType::sentFile == first){
+        //文件发送完毕 关闭文件句柄
+        receiveFileHandle.close();
     }
 
 }

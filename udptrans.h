@@ -26,7 +26,8 @@ enum MessageType{
     fileInfo = 0x1,                 //发送文件信息
     fileContent = 0x2,              //发送文件内容
     acceptFile = 0x3,               //同意接收该文件
-    rejectFile = 0x4                //拒绝接收该文件
+    rejectFile = 0x4,               //拒绝接收该文件
+    sentFile = 0x5,                 //文件发送完毕
 };
 
 //定义设备信息结构体
