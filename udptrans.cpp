@@ -527,9 +527,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
                 }
                 totalBytes += unitBytes;
                 //延时处理
-                QElapsedTimer elTimer;
-                elTimer.start();
-                while(elTimer.elapsed()<500);
+//                QElapsedTimer elTimer;
+//                elTimer.start();
+//                while(elTimer.elapsed()<500);
             } while (unitBytes > 0);
             qDebug() << "文件传输完毕";   //文件发送完毕向接收方发送通知消息
             QByteArray msg;
