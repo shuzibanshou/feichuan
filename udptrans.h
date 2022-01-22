@@ -30,6 +30,8 @@ enum MessageType{
     acceptFile = 0x3,               //同意接收该文件
     rejectFile = 0x4,               //拒绝接收该文件
     sentFile = 0x5,                 //文件发送完毕
+    recUdpPackSucc = 0x06,          //UDP包接收成功反馈通知
+    recUdpPackFail = 0x07           //UDP包接收失败反馈通知
 };
 
 //定义设备信息结构体
@@ -66,6 +68,8 @@ private:
     QFile file;                                                     //发送文件对象
     QString fileName;                                               //当前发送文件名
     quint64 fileSize;                                               //当前发送文件总大小 bytes
+    QByteArray sendingBuff;                                         //当前正在发送的字节数据
+    quint64 fileSentSize;                                           //当前已发送的总字节数 bytes
 
     QFile receiveFileHandle;                                        //接收文件对象
     QString saveFileName;                                           //当前接收文件名
@@ -109,7 +113,7 @@ private slots:
     void openFile();                                                //打开文件管理器
     void openMsgDialog();                                           //打开发送消息框
     void onSocketFileReadyRead();
-    void on_remoteDevice_clicked(const QModelIndex &index);
+    //void on_remoteDevice_clicked(const QModelIndex &index);
     void acceptFile();                                              //确认接收文件
     void rejectFile();                                              //拒收文件
 };
