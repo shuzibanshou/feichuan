@@ -72,7 +72,7 @@ private:
     QString saveDirPath;                                            //当前接收文件存储目录
     QString saveFilePath;                                           //当前接收文件存储路径
     quint64 saveFileSize;                                           //当前接收文件总字节数
-    quint64 curSaveFileSize = 0;                                        //当前接收文件已接收总字节数
+    quint64 curSaveFileSize = 0;                                    //当前接收文件已接收总字节数
 
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换

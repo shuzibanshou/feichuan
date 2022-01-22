@@ -537,11 +537,11 @@ void UDPTrans::parseFileMessage(QByteArray data)
             udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remoteFilePort);
 
             file.close();
-    //        progress* ps = new progress(this);
-    //        ps->exec();
+            progress* ps = new progress(this);
+            ps->exec();
         } else if(MessageType::fileContent == first){
             //接收文件内容 接收完毕必须要关闭文件
-            qDebug() << content;
+            //qDebug() << content;
             quint64 len = 0;
             len = receiveFileHandle.write(content);
             //何时关闭文件句柄很关键
@@ -549,8 +549,8 @@ void UDPTrans::parseFileMessage(QByteArray data)
             if(curSaveFileSize == saveFileSize){
                 receiveFileHandle.close();
             } else {
-                qDebug() << saveFileSize;
-                qDebug() << curSaveFileSize;
+                //qDebug() << saveFileSize;
+                //qDebug() << curSaveFileSize;
             }
             //qDebug() << len;
         } else if(MessageType::rejectFile == first){
