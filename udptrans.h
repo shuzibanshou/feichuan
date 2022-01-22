@@ -17,6 +17,7 @@
 #include <QFile>
 #include <QListWidget>
 #include <QElapsedTimer>
+#include <QException>
 
 namespace Ui {
 class UDPTrans;
@@ -60,6 +61,7 @@ private:
     QUdpSocket* udpSocketFile;                                      //UDP收发文件的socket
     quint16 filePort = 20001;                                       //UDP收发文件的UDP端口
     quint16 remotePort;                                             //当前与其进行文件收发通信的远端UDP端口 默认等于filePort
+    quint16 remoteFilePort;
     QString remoteIPv4Addr;                                         //当前与其进行文件收发通信的远端IPv4地址
     QFile file;                                                     //发送文件对象
     QString fileName;                                               //当前发送文件名
@@ -69,6 +71,8 @@ private:
     QString saveFileName;                                           //当前接收文件名
     QString saveDirPath;                                            //当前接收文件存储目录
     QString saveFilePath;                                           //当前接收文件存储路径
+    quint64 saveFileSize;                                           //当前接收文件总字节数
+    quint64 curSaveFileSize = 0;                                        //当前接收文件已接收总字节数
 
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
