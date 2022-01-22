@@ -515,26 +515,29 @@ void UDPTrans::parseFileMessage(QByteArray data)
         } else if(MessageType::acceptFile == first){
             //打开传输进度窗口 读取文件并发送
             //qDebug() << "接收方已同意,开始发送文件";
-            quint64 sendUnit = 4096;    //每次计划发送字节数
-            quint64 unitBytes = 0;      //每次实际发送字节数
+            if(sendLock){
+                quint64 sendUnit = 4096;    //每次计划发送字节数
+                quint64 unitBytes = 0;      //每次实际发送字节数
 
-            sendingBuff = file.read(sendUnit);
-            unitBytes = sendingBuff.length();
-            qDebug() << unitBytes;
-            if(unitBytes > 0){
-                unitBytes = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+                sendingBuff = file.read(sendUnit);
+                unitBytes = sendingBuff.length();
+
+                if(unitBytes > 0){
+                    qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+                    if(res > 0){
+                        fileSentSize += unitBytes;
+                        sendLock = false;
+                    }
+                }
+                if(fileSentSize == fileSize){
+                    QByteArray msg;
+                    msg.append(MessageType::sentFile);
+                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+                    file.close();
+                }
+    //            progress* ps = new progress(this);
+    //            ps->show();
             }
-            qDebug() << unitBytes;
-            fileSentSize += unitBytes;
-
-            qDebug() << "文件第一个包发送完毕";
-            QByteArray msg;
-            msg.append(MessageType::sentFile);
-            udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
-
-            file.close();
-//            progress* ps = new progress(this);
-//            ps->show();
         } else if(MessageType::fileContent == first){
             //接收文件内容 接收完毕必须要关闭文件
             //qDebug() << content;
@@ -562,9 +565,49 @@ void UDPTrans::parseFileMessage(QByteArray data)
         } else if(MessageType::sentFile == first){
 
         } else if(MessageType::recUdpPackSucc == first){
+            //收到接收方的成功通知 释放锁并再次发送一个UDP包
+            sendLock = true;
+            if(sendLock){
+                quint64 sendUnit = 4096;    //每次计划发送字节数
+                quint64 unitBytes = 0;      //每次实际发送字节数
 
+                sendingBuff = file.read(sendUnit);
+                unitBytes = sendingBuff.length();
+
+                if(unitBytes > 0){
+                    qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+                    if(res > 0){
+                        fileSentSize += unitBytes;
+                        sendLock = false;
+                    }
+                }
+                if(fileSentSize == fileSize){
+                    QByteArray msg;
+                    msg.append(MessageType::sentFile);
+                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+                    file.close();
+                }
+    //            progress* ps = new progress(this);
+    //            ps->show();
+            }
         } else if(MessageType::recUdpPackFail == first){
+            //收到接收方失败的通知 则重发一次当前的UDP包
+            if(sendLock){
+                qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+                if(res > 0){
+                    fileSentSize += sendingBuff.length();
+                    sendLock = false;
+                }
 
+                if(fileSentSize == fileSize){
+                    QByteArray msg;
+                    msg.append(MessageType::sentFile);
+                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+                    file.close();
+                }
+    //            progress* ps = new progress(this);
+    //            ps->show();
+            }
         }
     }  catch (QException e) {
        qDebug() << e.what();
