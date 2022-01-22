@@ -514,7 +514,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             rFile->show();
         } else if(MessageType::acceptFile == first){
             //打开传输进度窗口 读取文件并发送
-            //qDebug() << "接收方已同意,开始发送文件";
+            qDebug() << "接收方已同意,开始发送文件";
             if(sendLock){
                 quint64 sendUnit = 4096;    //每次计划发送字节数
                 quint64 unitBytes = 0;      //每次实际发送字节数
@@ -635,7 +635,6 @@ void UDPTrans::acceptFile()
     if(succ){
         QByteArray msg;
         msg.append(MessageType::acceptFile);
-        qDebug() << "同意接收";
         udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
     } else {
         QMessageBox::warning(this, tr("提示"),tr("打开文件句柄失败,无法保存文件"),QMessageBox::Ok,QMessageBox::Ok);
