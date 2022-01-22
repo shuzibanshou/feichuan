@@ -540,7 +540,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             }
         } else if(MessageType::fileContent == first){
             //接收文件内容 接收完毕必须要关闭文件
-            //qDebug() << content;
+            qDebug() << content;
             if(content.length() > 0){
                 QByteArray msg;
                 qint64 len = 0;
@@ -554,6 +554,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
                     msg.append(MessageType::recUdpPackFail);
                 }
                 udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+
+                qDebug() << saveFileSize;
+                qDebug() << curSaveFileSize;
                 if(curSaveFileSize == saveFileSize){
                     QMessageBox::critical(this, tr("成功"),tr("文件已接收完成"),QMessageBox::Ok,QMessageBox::Ok);
                     curSaveFileSize = 0;
@@ -592,22 +595,20 @@ void UDPTrans::parseFileMessage(QByteArray data)
             }
         } else if(MessageType::recUdpPackFail == first){
             //收到接收方失败的通知 则重发一次当前的UDP包
-            if(sendLock){
-                qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
-                if(res > 0){
-                    fileSentSize += sendingBuff.length();
-                    sendLock = false;
-                }
-
-                if(fileSentSize == fileSize){
-                    QByteArray msg;
-                    msg.append(MessageType::sentFile);
-                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
-                    file.close();
-                }
-    //            progress* ps = new progress(this);
-    //            ps->show();
+            qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+            if(res > 0){
+                fileSentSize += sendingBuff.length();
+                sendLock = false;
             }
+
+            if(fileSentSize == fileSize){
+                QByteArray msg;
+                msg.append(MessageType::sentFile);
+                udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+                file.close();
+            }
+//            progress* ps = new progress(this);
+//            ps->show();
         }
     }  catch (QException e) {
        qDebug() << e.what();
