@@ -550,7 +550,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                     //接收成功
                     msg.append(MessageType::recUdpPackSucc);
                     curSaveFileSize += len;
-                    qDebug() << "接收成功";
+                    qDebug() << "接收成功" << curSaveFileSize;
                 } else if(len == -1) {
                     //接收失败通知重发
                     msg.append(MessageType::recUdpPackFail);
