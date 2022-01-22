@@ -538,7 +538,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
             file.close();
             progress* ps = new progress(this);
-            ps->exec();
+            ps->show();
         } else if(MessageType::fileContent == first){
             //接收文件内容 接收完毕必须要关闭文件
             //qDebug() << content;
@@ -547,6 +547,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             //何时关闭文件句柄很关键
             curSaveFileSize += len;
             if(curSaveFileSize == saveFileSize){
+                QMessageBox::critical(this, tr("成功"),tr("文件已接收完成"),QMessageBox::Ok,QMessageBox::Ok);
                 receiveFileHandle.close();
             } else {
                 //qDebug() << saveFileSize;
