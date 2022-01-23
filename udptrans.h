@@ -71,7 +71,7 @@ private:
     QString fileName;                                               //当前发送文件名
     quint64 fileSize;                                               //当前发送文件总大小 bytes
     QByteArray sendingBuff;                                         //当前正在发送的字节块
-    quint64 sendingBuffIndex = 1;                                   //当前正在发送的字节块在fileBlocks数组中的索引值 (不能以0发送 原因有待分析)
+    quint64 sendingBuffIndex = 0;                                   //当前正在发送的字节块在fileBlocks数组中的索引值
     quint64 fileSentSize = 0;                                       //当前已发送的总字节数 bytes
 
     bool sendLock = true;                                           //当前发送UDP包的锁 当锁为true可发送 false则不可发送

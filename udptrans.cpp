@@ -4,6 +4,8 @@
 #include "receivefile.h"
 #include "progress.h"
 
+#include "common.h"
+
 UDPTrans::UDPTrans(QWidget *parent) :QMainWindow(parent),ui(new Ui::UDPTrans)
 {
     ui->setupUi(this);
@@ -528,7 +530,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
                 if(unitBytes > 0){
                     QByteArray udpPacket = sendingBuff;
-                    udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
+                    udpPacket.insert(0,intToByte(sendingBuffIndex)).insert(0,MessageType::fileContent);
                     qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
                     if(res > 0){
                         //UDP数据包发送成功后启动重发定时器
@@ -615,7 +617,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
                     if(unitBytes > 0){
                         QByteArray udpPacket = sendingBuff;
-                        udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
+                        udpPacket.insert(0,intToByte(sendingBuffIndex)).insert(0,MessageType::fileContent);
                         qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
                         if(res > 0){
                             retransMissionTimer->start(retransMissionInterval);
@@ -638,7 +640,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
         } else if(MessageType::recUdpPackFail == first){
             QByteArray udpPacket = sendingBuff;
-            udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
+            udpPacket.insert(0,intToByte(sendingBuffIndex)).insert(0,MessageType::fileContent);
             //收到接收方失败的通知 则重发一次当前的UDP包
             qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
             if(res > 0){
@@ -705,7 +707,7 @@ void UDPTrans::rejectFile()
 void UDPTrans::retransMissionPacket()
 {
     QByteArray udpPacket = sendingBuff;
-    udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
+    udpPacket.insert(0,intToByte(sendingBuffIndex)).insert(0,MessageType::fileContent);
     retransMissionTimer->stop();
     qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
     if(res > 0){

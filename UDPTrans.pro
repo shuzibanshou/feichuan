@@ -25,12 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    common.cpp \
         main.cpp \
     progress.cpp \
         udptrans.cpp \
     receivefile.cpp
 
 HEADERS += \
+    common.h \
     progress.h \
         udptrans.h \
     receivefile.h
