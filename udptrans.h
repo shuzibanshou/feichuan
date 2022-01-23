@@ -17,7 +17,8 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QListWidget>
-#include <QElapsedTimer>
+//#include <QElapsedTimer>
+#include <QtMath>
 #include <QException>
 
 namespace Ui {
@@ -69,9 +70,10 @@ private:
     QFile file;                                                     //发送文件对象
     QString fileName;                                               //当前发送文件名
     quint64 fileSize;                                               //当前发送文件总大小 bytes
-    QByteArray sendingBuff;                                         //当前正在发送的字节数据
+    QByteArray sendingBuff;                                         //当前正在发送的字节块
+    quint64 sendingBuffIndex = 0;                                       //当前正在发送的字节块在fileBlocks数组中的索引值
     quint64 fileSentSize = 0;                                       //当前已发送的总字节数 bytes
-    QBitArray* fileBlocks = new QBitArray();                        //当前发送文件分块的发送情况 每成功发送一块则bit位 置为1
+
     bool sendLock = true;                                           //当前发送UDP包的锁 当锁为true可发送 false则不可发送
 
     QFile receiveFileHandle;                                        //接收文件对象
@@ -80,7 +82,7 @@ private:
     QString saveFilePath;                                           //当前接收文件存储路径
     quint64 saveFileSize;                                           //当前接收文件的总大小 bytes 等同于fileSize
     quint64 curSaveFileSize = 0;                                    //当前接收文件已接收总字节数
-
+    QBitArray* fileBlocks = nullptr;                                //当前接收文件分块的发送情况 每成功接收一块则bit位 置为1
 
     QString protocolName(QAbstractSocket::NetworkLayerProtocol);    //协议族名称转换
     QMap<QString,QString> getHostIP();                              //获取本地所有IPv4地址
@@ -98,7 +100,7 @@ private:
     QTimer*  broadcastTimer;                                        //局域网UDP循环广播定时器
     QTimer*  scanDevicesTimer;                                      //扫描活跃设备定时器
     QTimer*  retransMissionTimer;                                   //UDP数据包重发定时器
-    quint16 retransMissionInterval = 500;                           //UDP数据包重发定时器时间间隔
+    quint16 retransMissionInterval = 200;                           //UDP数据包重发定时器时间间隔
 
     QMap<QString,deviceItem> lanDevices;                            //局域网内设备IPv4地址合集-定时扫描踢出下线设备
     QMap<QString,deviceItem> newLanDevices;                         //下一次扫描新的局域网内设备IPv4地址合集 比对旧的数据 分别新增或更新widgetItem

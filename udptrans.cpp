@@ -460,7 +460,7 @@ void UDPTrans:: openFile(){
  * @brief UDPTrans::openMsgDialog
  */
 void UDPTrans:: openMsgDialog(){
-    //qDebug() << "打开文件管理器";
+    //qDebug() << "打开消息管理器";
     QObject* o = sender();
     QString ip = o->property("ip").toString();
     qDebug() << ip;
@@ -516,7 +516,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             rFile->show();
         } else if(MessageType::acceptFile == first){
             //打开传输进度窗口 读取文件并发送
-            qDebug() << "接收方已同意,开始发送文件";
+            qDebug() << "接收方已同意,开始分块并发送文件";
             fileSentSize = 0;
             if(sendLock){
                 quint64 sendUnit = 4096;    //每次计划发送字节数
@@ -526,7 +526,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
                 unitBytes = sendingBuff.length();
 
                 if(unitBytes > 0){
-                    qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+                    QByteArray udpPacket = sendingBuff;
+                    udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
+                    qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
                     if(res > 0){
                         //UDP数据包发送成功后启动重发定时器
                         retransMissionTimer->start(retransMissionInterval);
@@ -546,76 +548,98 @@ void UDPTrans::parseFileMessage(QByteArray data)
     //            ps->show();
             }
         } else if(MessageType::fileContent == first){
-            //接收文件内容 接收完毕必须要关闭文件
-            qDebug() << content;
-            qDebug() << content.length();
-            if(content.length() > 0){
-                QByteArray msg;
-                qint64 len = 0;
-                len = receiveFileHandle.write(content);
-                qDebug() << len;
-                if(len > 0){
-                    //接收成功
-                    msg.append(MessageType::recUdpPackSucc);
-                    curSaveFileSize += len;
-                    //qDebug() << "接收成功" << curSaveFileSize;
-                } else if(len == -1) {
-                    //接收失败通知重发
-                    msg.append(MessageType::recUdpPackFail);
-                    qDebug() << "接收失败,通知重发";
-                }
-                udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+            //接收文件内容
+            //获取content的前面四个字节的文件块索引值 如果文件块索引已成功写入 则忽略并反馈一个写入成功消息
 
-                qDebug() << saveFileSize;
-                qDebug() << curSaveFileSize;
-                if(curSaveFileSize == saveFileSize){
-                    curSaveFileSize = 0;
-                    receiveFileHandle.close();
-                    //提示框是阻塞的 要放在最后面
-                    QMessageBox::critical(this, tr("成功"),tr("文件已接收完成"),QMessageBox::Ok,QMessageBox::Ok);
-                }
+            QByteArray recBuffIndexArr;
+            quint64 recBuffIndex;
+            QByteArray fileContent;
+            recBuffIndexArr.append(content.data(), 4);
+            recBuffIndex = recBuffIndexArr.toULongLong();
+            fileContent.append(content.data() + 4, content.size() - 4);
+
+            QByteArray msg;
+            if(fileBlocks->at(recBuffIndex)){
+                msg.append(MessageType::recUdpPackSucc).append(recBuffIndex);
             } else {
-                qDebug() << content;
+                //qDebug() << fileContent;
+                //qDebug() << fileContent.length();
+                if(fileContent.length() > 0){
+                    qint64 len = 0;
+                    len = receiveFileHandle.write(fileContent);
+                    //qDebug() << len;
+                    if(len > 0){
+                        //接收成功
+                        msg.append(MessageType::recUdpPackSucc).append(recBuffIndex);
+                        curSaveFileSize += len;
+                        //字节块索引置为1
+                        fileBlocks->setBit(recBuffIndex);
+                        //qDebug() << "接收成功" << curSaveFileSize;
+                    } else if(len == -1) {
+                        //接收失败带上文件块索引通知重发
+                        msg.append(MessageType::recUdpPackFail).append(recBuffIndex);
+                        qDebug() << "接收失败,通知重发";
+                    }
+                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+
+                    qDebug() << saveFileSize;
+                    qDebug() << curSaveFileSize;
+                    if(curSaveFileSize == saveFileSize){
+                        curSaveFileSize = 0;
+                        receiveFileHandle.close();
+                        //提示框是阻塞的 要放在最后面
+                        QMessageBox::critical(this, tr("成功"),tr("文件已接收完成"),QMessageBox::Ok,QMessageBox::Ok);
+                    }
+                }
             }
         } else if(MessageType::rejectFile == first){
 
         } else if(MessageType::sentFile == first){
 
         } else if(MessageType::recUdpPackSucc == first){
-            //收到接收方的成功通知 释放锁 停掉定时器并再次发送一个UDP包
-            sendLock = true;
-            retransMissionTimer->stop();
-            if(sendLock){
-                quint64 sendUnit = 4096;    //每次计划发送字节数
-                quint64 unitBytes = 0;      //每次实际发送字节数
+            //获取content的前面四个字节的文件块索引值
+            quint64 recBuffIndex = content.toULongLong();
+            //如果接收方通知的文件块索引与当前索引值不同 则丢弃
+            if(recBuffIndex == sendingBuffIndex){
+                //收到接收方的成功通知 释放锁 停掉定时器并再次发送一个UDP包
+                ++sendingBuffIndex;
+                sendLock = true;
+                retransMissionTimer->stop();
+                if(sendLock){
+                    quint64 sendUnit = 4096;    //每次计划发送字节数
+                    quint64 unitBytes = 0;      //每次实际发送字节数
 
-                sendingBuff = file.read(sendUnit);
-                unitBytes = sendingBuff.length();
+                    sendingBuff = file.read(sendUnit);
+                    unitBytes = sendingBuff.length();
 
-                if(unitBytes > 0){
-                    qint64 res = udpSocketFile->writeDatagram(sendingBuff.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
-                    if(res > 0){
-                        retransMissionTimer->start(retransMissionInterval);
-                        fileSentSize += unitBytes;
-                        sendLock = false;
+                    if(unitBytes > 0){
+                        QByteArray udpPacket = sendingBuff;
+                        udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
+                        qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
+                        if(res > 0){
+                            retransMissionTimer->start(retransMissionInterval);
+                            fileSentSize += unitBytes;
+                            sendLock = false;
+                        }
                     }
+                    qDebug() << "2文件已发送" << fileSentSize;
+                    if(fileSentSize == fileSize){
+                        qDebug() << "文件发送完毕";
+                        QByteArray msg;
+                        msg.append(MessageType::sentFile);
+                        udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+                        file.close();
+                    }
+                    //progress* ps = new progress(this);
+                    //ps->show();
                 }
-                qDebug() << "2文件已发送" << fileSentSize;
-                if(fileSentSize == fileSize){
-                    qDebug() << "文件发送完毕";
-                    QByteArray msg;
-                    msg.append(MessageType::sentFile);
-                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
-                    file.close();
-                }
-    //            progress* ps = new progress(this);
-    //            ps->show();
             }
+
         } else if(MessageType::recUdpPackFail == first){
-            QByteArray content;
-            content.append(sendingBuff.data() + 1, sendingBuff.size() - 1);   //去掉data字节流的第一个字节
+            QByteArray udpPacket = sendingBuff;
+            udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
             //收到接收方失败的通知 则重发一次当前的UDP包
-            qint64 res = udpSocketFile->writeDatagram(content.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+            qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
             if(res > 0){
                 retransMissionTimer->start(retransMissionInterval);
                 sendLock = false;
@@ -651,6 +675,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
  */
 void UDPTrans::acceptFile()
 {
+    quint64 sendUnit = 4096;
     //打开接收文件句柄
     receiveFileHandle.setFileName(saveFilePath);
     bool succ = receiveFileHandle.open(QIODevice::WriteOnly);
@@ -658,6 +683,8 @@ void UDPTrans::acceptFile()
         QByteArray msg;
         msg.append(MessageType::acceptFile);
         udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
+        quint64 blocksCount = qCeil(saveFileSize / sendUnit);
+        fileBlocks = new QBitArray(blocksCount);
     } else {
         QMessageBox::warning(this, tr("提示"),tr("打开文件句柄失败,无法保存文件"),QMessageBox::Ok,QMessageBox::Ok);
         exit(0);
@@ -676,11 +703,10 @@ void UDPTrans::rejectFile()
  */
 void UDPTrans::retransMissionPacket()
 {
-    QByteArray content;
-    content.append(sendingBuff.data() + 1, sendingBuff.size() - 1);   //去掉data字节流的第一个字节
-
+    QByteArray udpPacket = sendingBuff;
+    udpPacket.insert(0,sendingBuffIndex).insert(0,MessageType::fileContent);
     retransMissionTimer->stop();
-    qint64 res = udpSocketFile->writeDatagram(content.insert(0,MessageType::fileContent),QHostAddress(remoteIPv4Addr),remotePort);
+    qint64 res = udpSocketFile->writeDatagram(udpPacket,QHostAddress(remoteIPv4Addr),remotePort);
     if(res > 0){
         retransMissionTimer->start(retransMissionInterval);
         sendLock = false;
