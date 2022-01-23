@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
     UDPTrans w;
     w.show();
 
+
     //打开接收文件句柄
 //    QFile testFileWrite;
 //    testFileWrite.setFileName("D:/Qt/project/build-UDPTrans-Desktop_Qt_5_13_2_MinGW_64_bit-Debug/debug/receiveFiles/1.txt");
