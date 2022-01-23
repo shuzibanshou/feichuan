@@ -600,6 +600,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
         } else if(MessageType::recUdpPackSucc == first){
             //获取content的前面四个字节的文件块索引值
+            qDebug() << content;
             quint64 recBuffIndex = content.toULongLong();
             //如果接收方通知的文件块索引与当前索引值不同 则丢弃
             if(recBuffIndex == sendingBuffIndex){
