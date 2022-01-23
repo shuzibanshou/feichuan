@@ -558,7 +558,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             quint64 recBuffIndex;
             QByteArray fileContent;
             recBuffIndexArr.append(content.data(), 4);
-            recBuffIndex = recBuffIndexArr.toULongLong();
+            recBuffIndex = bytesToInt(recBuffIndexArr);
             fileContent.append(content.data() + 4, content.size() - 4);
 
             QByteArray msg;
