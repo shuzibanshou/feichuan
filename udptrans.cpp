@@ -575,7 +575,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                         msg.append(MessageType::recUdpPackSucc).append(recBuffIndex);
                         curSaveFileSize += len;
                         //字节块索引置为1
-                        fileBlocks->setBit(recBuffIndex - 1);
+                        fileBlocks->setBit(recBuffIndex);
                         //qDebug() << "接收成功" << curSaveFileSize;
                     } else if(len == -1) {
                         //接收失败带上文件块索引通知重发
