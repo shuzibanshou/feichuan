@@ -518,7 +518,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
             rFile->show();
         } else if(MessageType::acceptFile == first){
             //打开传输进度窗口 读取文件并发送
-            qDebug() << "接收方已同意,开始分块并发送文件";
+            //qDebug() << "接收方已同意,开始分块并发送文件";
             fileSentSize = 0;
             if(sendLock){
                 quint64 sendUnit = 4096;    //每次计划发送字节数
@@ -538,9 +538,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
                         sendLock = false;
                     }
                 }
-                qDebug() << "1文件已发送" << fileSentSize;
+                //qDebug() << "1文件已发送" << fileSentSize;
                 if(fileSentSize == fileSize){
-                    qDebug() << "文件发送完毕";
+                    //qDebug() << "文件发送完毕";
 //                    QByteArray msg;
 //                    msg.append(MessageType::sentFile);
 //                    udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
@@ -637,7 +637,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                             sendLock = false;
                         }
                     }
-                    qDebug() << "2文件已发送" << fileSentSize;
+                    //qDebug() << "2文件已发送" << fileSentSize;
                     if(fileSentSize == fileSize){
                         qDebug() << "文件发送完毕";
 //                        QByteArray msg;
@@ -659,9 +659,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
                 retransMissionTimer->start(retransMissionInterval);
                 sendLock = false;
             }
-            qDebug() << "3文件已发送" << fileSentSize;
+            //qDebug() << "3文件已发送" << fileSentSize;
             if(fileSentSize == fileSize){
-                qDebug() << "文件发送完毕";
+                //qDebug() << "文件发送完毕";
 //                QByteArray msg;
 //                msg.append(MessageType::sentFile);
 //                udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
