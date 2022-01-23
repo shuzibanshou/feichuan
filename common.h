@@ -5,6 +5,6 @@
 
 QByteArray intToByte(int);
 int bytesToInt(QByteArray);
-QByteArray paddingQByteArray(quint64,quint16);
+QByteArray paddingQByteArray(quint64,quint8);
 
 #endif // COMMON_H
