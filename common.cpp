@@ -19,3 +19,13 @@ int bytesToInt(QByteArray bytes)
     addr |= ((bytes[3] << 24) & 0xFF000000);
     return addr;
 }
+
+QByteArray paddingQByteArray(quint64 data,quint8 paddingLength){
+    QByteArray qbytes(QString::number(data).toUtf8());
+    if(qbytes.length() < paddingLength){
+         do {
+            qbytes.insert(0,'0');
+         } while (qbytes.length() < paddingLength);
+    }
+    return qbytes;
+}

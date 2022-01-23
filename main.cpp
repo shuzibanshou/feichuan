@@ -2,8 +2,6 @@
 #include "receivefile.h"
 #include <QApplication>
 
-
-
 int main(int argc, char *argv[])
 {
 
@@ -11,8 +9,6 @@ int main(int argc, char *argv[])
 
     UDPTrans w;
     w.show();
-    //QByteArray x = intToByte(1);
-    //qDebug() << bytesToInt(x);
 
     return a.exec();
 }
