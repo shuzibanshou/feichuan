@@ -68,8 +68,8 @@ private:
     quint16 remoteFilePort;
     QString remoteIPv4Addr;                                         //当前与其进行文件收发通信的远端IPv4地址
     QFile file;                                                     //发送文件对象
-    QString fileName;                                               //当前发送文件名
-    quint64 fileSize;                                               //当前发送文件总大小 bytes
+    QString fileName = "";                                          //当前发送文件名
+    quint64 fileSize = 0;                                           //当前发送文件总大小 bytes
     QByteArray sendingBuff;                                         //当前正在发送的字节块
     quint64 sendingBuffIndex = 0;                                   //当前正在发送的字节块在fileBlocks数组中的索引值
     quint64 fileSentSize = 0;                                       //当前已发送的总字节数 bytes
