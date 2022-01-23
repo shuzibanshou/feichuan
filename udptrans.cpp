@@ -476,9 +476,10 @@ void UDPTrans::onSocketFileReadyRead()
         datagram.resize(static_cast<int>(udpSocketFile->pendingDatagramSize()));
         QHostAddress remoteIPv6Addr;     //远程主机地址ipv6
         udpSocketFile->readDatagram(datagram.data(),datagram.size(),&remoteIPv6Addr,&remotePort);
+
         QString receiveData = QString::fromUtf8(datagram.data());
         remoteIPv4Addr = QHostAddress(remoteIPv6Addr.toIPv4Address()).toString();
-        //qDebug() << receiveData;
+        qDebug() << receiveData;
         if(!receiveData.isEmpty()){
             parseFileMessage(datagram.data());
         } else {
@@ -548,9 +549,9 @@ void UDPTrans::parseFileMessage(QByteArray data)
     //            ps->show();
             }
         } else if(MessageType::fileContent == first){
+            qDebug() << content;
             //接收文件内容
             //获取content的前面四个字节的文件块索引值 如果文件块索引已成功写入 则忽略并反馈一个写入成功消息
-
             QByteArray recBuffIndexArr;
             quint64 recBuffIndex;
             QByteArray fileContent;
@@ -562,8 +563,8 @@ void UDPTrans::parseFileMessage(QByteArray data)
             if(fileBlocks->at(recBuffIndex)){
                 msg.append(MessageType::recUdpPackSucc).append(recBuffIndex);
             } else {
-                //qDebug() << fileContent;
-                //qDebug() << fileContent.length();
+                qDebug() << fileContent;
+                qDebug() << fileContent.length();
                 if(fileContent.length() > 0){
                     qint64 len = 0;
                     len = receiveFileHandle.write(fileContent);
@@ -573,7 +574,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                         msg.append(MessageType::recUdpPackSucc).append(recBuffIndex);
                         curSaveFileSize += len;
                         //字节块索引置为1
-                        fileBlocks->setBit(recBuffIndex);
+                        fileBlocks->setBit(recBuffIndex - 1);
                         //qDebug() << "接收成功" << curSaveFileSize;
                     } else if(len == -1) {
                         //接收失败带上文件块索引通知重发
