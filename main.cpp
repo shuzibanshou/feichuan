@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     UDPTrans w;
     w.show();
 
-    //qDebug() << (float)80/100*100;
+    //qDebug() << ((float)200/200)*100;
 
     return a.exec();
 }

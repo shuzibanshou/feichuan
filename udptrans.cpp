@@ -577,7 +577,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                         //字节块索引置为1
                         fileBlocks->setBit(recBuffIndex);
                         //qDebug() << "接收成功" << curSaveFileSize;
-                        //
+                        recvProgress->setValue(((float)curSaveFileSize/saveFileSize)*100);
                     } else if(len == -1) {
                         //接收失败带上文件块索引通知重发
                         msg.append(MessageType::recUdpPackFail).append(QString::number(recBuffIndex));
@@ -591,10 +591,11 @@ void UDPTrans::parseFileMessage(QByteArray data)
                         msg.clear();
                         msg.append(MessageType::sentFile);
                         udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
-                        curSaveFileSize = 0;
+                        curSaveFileSize = saveFileSize = 0;
                         receiveFileHandle.close();
+                        recvProgress->close();
                         //提示框是阻塞的 要放在最后面
-                        QMessageBox::critical(this, tr("成功"),tr("文件已接收完成"),QMessageBox::Ok,QMessageBox::Ok);
+                        QMessageBox::information(this, tr("成功"),tr("文件已接收完成"),QMessageBox::Ok,QMessageBox::Ok);
                     } else {
                         udpSocketFile->writeDatagram(msg,QHostAddress(remoteIPv4Addr),remotePort);
                     }
@@ -666,8 +667,6 @@ void UDPTrans::parseFileMessage(QByteArray data)
                     file.close();
                 }
             }
-//            progress* ps = new progress(this);
-//            ps->show();
         }
     }  catch (QException e) {
        qDebug() << e.what();
@@ -700,7 +699,9 @@ void UDPTrans::acceptFile()
         quint64 blocksCount = qCeil((float)saveFileSize / sendUnit);    //必须要先转float才行
         fileBlocks = new QBitArray(blocksCount);
         //显示接收文件进度条
-
+        recvProgress = new progress(this);
+        recvProgress->setRange(0,100);
+        recvProgress->show();
     } else {
         QMessageBox::warning(this, tr("提示"),tr("打开文件句柄失败,无法保存文件"),QMessageBox::Ok,QMessageBox::Ok);
         exit(0);
