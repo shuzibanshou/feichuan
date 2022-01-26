@@ -10,3 +10,14 @@ progress::~progress()
 {
     delete ui;
 }
+
+void progress::setRange(qint32 min, qint32 max)
+{
+    ui->progressBar->setRange(min,max);
+}
+
+void progress::setValue(qint32 val)
+{
+    ui->progressBar->setValue(val);
+}
+

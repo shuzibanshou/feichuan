@@ -21,6 +21,8 @@
 #include <QtMath>
 #include <QException>
 
+#include "progress.h"
+
 namespace Ui {
 class UDPTrans;
 }
@@ -57,6 +59,8 @@ public:
 
 private:
     Ui::UDPTrans *ui;
+    progress *sendProgress;                                           //发送进度条对话框
+    progress *recvProgress;                                           //接收进度条对话框
     quint16 initPort = 10000;   //初始化UDP绑定端口 若端口占用绑定失败则在此基础上+1再次进行绑定直到绑定成功为止
     quint16 actualPort = 10000; //最后实际上绑定的UDP端口
     QUdpSocket* udpSocket;                                          //UDP广播的socket

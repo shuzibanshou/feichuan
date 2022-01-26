@@ -83,6 +83,8 @@ void receiveFile::on_pushButton_2_clicked()
     }
     //向父窗口发送接收文件消息
     emit acceptFile();
+    //关闭接收文件窗口
+    this->close();
 }
 
 /**

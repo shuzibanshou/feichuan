@@ -15,6 +15,9 @@ public:
     explicit progress(QWidget *parent = nullptr);
     ~progress();
 
+    void setRange(qint32,qint32);
+    void setValue(qint32);
+
 private:
     Ui::progress *ui;
 };
