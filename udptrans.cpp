@@ -190,7 +190,7 @@ void UDPTrans::checkBroadcast(QString data,QString remoteIPv4Addr)
         QStringList list = data.split("##");
         QString deviceOS = list[0];
         QString deviceName = list[1];
-        quint32 timestamp = QDateTime::currentDateTimeUtc().toTime_t();   //获取当前时间
+        quint32 timestamp = QDateTime::currentDateTimeUtc().toSecsSinceEpoch();   //获取当前时间
 
         deviceItem di = {.deviceOS = deviceOS, .deviceName = deviceName, .deviceIPv4 = remoteIPv4Addr, .item = NULL, .timestamp = timestamp};
         if(localIPv4.contains(remoteIPv4Addr)){
@@ -230,7 +230,7 @@ void UDPTrans::lanBroadcast()
 void UDPTrans::scanDevices()
 {
     //ui->remoteDevice->clear();
-    quint32 now = QDateTime::currentDateTimeUtc().toTime_t();
+    quint32 now = QDateTime::currentDateTimeUtc().toSecsSinceEpoch();
     QMap<QString, deviceItem>::iterator iter = newLanDevices.begin();
 
     while (iter != newLanDevices.end())
@@ -247,7 +247,8 @@ void UDPTrans::scanDevices()
         if(now - iter.value().timestamp >= unactiveTimeout){
             //先删除UI界面再清除数据
             delWidgetItem(iter.key());
-            newLanDevices.erase(iter++);
+            newLanDevices.erase(iter);
+            iter++;
         } else {
             if(lanDevices.contains(iter.value().deviceIPv4)){
                 QString ipv4 = iter.value().deviceIPv4;
@@ -561,7 +562,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
 
             QByteArray msg;
             if(fileBlocks->at(recBuffIndex)){
-                msg.append(MessageType::recUdpPackSucc).append(QString::number(recBuffIndex));
+                msg.append(MessageType::recUdpPackSucc).append(QString::number(recBuffIndex).toUtf8());
             } else {
                 //qDebug() << recBuffIndex;
                 //qDebug() << fileContent;
@@ -572,7 +573,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                     //qDebug() << len;
                     if(len > 0){
                         //接收成功
-                        msg.append(MessageType::recUdpPackSucc).append(QString::number(recBuffIndex));
+                        msg.append(MessageType::recUdpPackSucc).append(QString::number(recBuffIndex).toUtf8());
                         curSaveFileSize += len;
                         //字节块索引置为1
                         fileBlocks->setBit(recBuffIndex);
@@ -580,7 +581,7 @@ void UDPTrans::parseFileMessage(QByteArray data)
                         recvProgress->setValue(((float)curSaveFileSize/saveFileSize)*100);
                     } else if(len == -1) {
                         //接收失败带上文件块索引通知重发
-                        msg.append(MessageType::recUdpPackFail).append(QString::number(recBuffIndex));
+                        msg.append(MessageType::recUdpPackFail).append(QString::number(recBuffIndex).toUtf8());
                         qDebug() << "接收失败,通知重发";
                     }
 
