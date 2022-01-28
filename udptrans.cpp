@@ -247,8 +247,7 @@ void UDPTrans::scanDevices()
         if(now - iter.value().timestamp >= unactiveTimeout){
             //先删除UI界面再清除数据
             delWidgetItem(iter.key());
-            newLanDevices.erase(iter);
-            iter++;
+            newLanDevices.erase(iter++);
         } else {
             if(lanDevices.contains(iter.value().deviceIPv4)){
                 QString ipv4 = iter.value().deviceIPv4;
